@@ -1,0 +1,38 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm run setup
+      - name: Basic samples
+        run: npm test
+      - name: Typical test strings
+        run: npm run test:typical
+      - name: Recipe library on real samples
+        run: npm run test:library
+      - name: Web UI (Playwright)
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+          npm run test:ui
+      - name: Advanced deep test (layers, 200 cases)
+        run: node test/advanced/run-advanced.mjs layers 200
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t autochef .
+      - name: Container answers
+        run: |
+          docker run -d --name ac -p 127.0.0.1:8471:8471 autochef
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8471/api/library >/dev/null && break; sleep 2; done
+          curl -sf -X POST -H 'content-type: application/json' -d '{"inputBase64":"U0dWc2JHOGdkMjl5YkdRPQ=="}' http://127.0.0.1:8471/api/analyze | grep -q "Hello world"

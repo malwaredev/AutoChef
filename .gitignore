@@ -1,0 +1,13 @@
+node_modules/
+decoded/
+*.log
+.DS_Store
+test/realworld/.cache/
+test/corpus/corpus-report.json
+test/crypto/crypto-report.json
+test/advanced/advanced-report.json
+test/ui/editor-screenshot.png
+data/
+scratch/
+# Browser edition build output: built by `npm run build:web` and by the Pages workflow
+web/

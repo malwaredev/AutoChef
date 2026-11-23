@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoChef: automatic recipes for CyberChef</title>
+<script>
+  // theme: saved choice, else follow the operating system setting
+  (function () {
+    let t = null; try { t = localStorage.getItem("autochef-theme"); } catch (e) {}
+    if (!t) t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<style>
+  :root {
+    --bg: #0f1216; --panel: #161b22; --panel2: #1c232c; --border: #2a323d;
+    --text: #e6edf3; --muted: #8b98a8; --accent: #4fa3ff; --accent2: #2f81f7;
+    --good: #3fb950; --warn: #d29922; --bad: #f85149; --chip: #222b36;
+    --over: #1a2533; --good-bg: #12361d; --warn-bg: #3a2c0b; --bad-bg: #3d1518; --bad-fg: #ffb3ad;
+    --op-bg: #1d3557; --op-fg: #cfe3ff; --accent2-hover: #4493f8;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f8fa; --panel: #ffffff; --panel2: #f3f5f8; --border: #d0d7de;
+    --text: #1f2328; --muted: #59636e; --accent: #0969da; --accent2: #0969da;
+    --good: #1a7f37; --warn: #9a6700; --bad: #cf222e; --chip: #f3f5f8;
+    --over: #ddf4ff; --good-bg: #dafbe1; --warn-bg: #fff8c5; --bad-bg: #ffebe9; --bad-fg: #a40e26;
+    --op-bg: #ddf4ff; --op-fg: #0a3069; --accent2-hover: #0550ae;
+    color-scheme: light;
+    --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  header h1 { font-size: 17px; margin: 0; font-weight: 650; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  header .spacer { flex: 1; }
+  header a { color: var(--accent); text-decoration: none; font-size: 13px; }
+  main { display: grid; grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.35fr); gap: 16px; padding: 16px 20px; height: calc(100vh - 56px); }
+  .col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .card h2 .r { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 400; }
+  textarea, input, select { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 7px; padding: 9px 10px; font: 13px/1.45 var(--mono); }
+  textarea:focus, input:focus, select:focus { outline: 2px solid var(--accent2); outline-offset: -1px; }
+  #input { height: 220px; min-height: 120px; resize: vertical; }
+  main > .col:first-child { overflow: auto; padding-right: 4px; }
+  .drop { border: 1.5px dashed var(--border); border-radius: 8px; padding: 10px; text-align: center; color: var(--muted); font-size: 13px; cursor: pointer; }
+  .drop.over { border-color: var(--accent); color: var(--text); background: var(--over); }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .row label { color: var(--muted); font-size: 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 110px; }
+  button { background: var(--chip); color: var(--text); border: 1px solid var(--border); border-radius: 7px; padding: 8px 12px; font: inherit; cursor: pointer; white-space: nowrap; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent2); border-color: var(--accent2); color: #fff; font-weight: 600; }
+  button.primary:hover { background: var(--accent2-hover); }
+  button.small { padding: 4px 8px; font-size: 12px; }
+  .muted { color: var(--muted); }
+  .switch { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; user-select: none; }
+  .switch input { width: auto; }
+  .row label.switch { flex-direction: row; flex: none; min-width: 0; font-size: 13px; }
+  #results { overflow: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 4px; }
+  .res { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .res.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .res-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .rank { font-weight: 700; color: var(--muted); }
+  .badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: .05em; }
+  .badge.high { background: var(--good-bg); color: var(--good); }
+  .badge.medium { background: var(--warn-bg); color: var(--warn); }
+  .badge.low { background: var(--bad-bg); color: var(--bad); }
+  .summary { font-weight: 600; }
+  .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 10px; }
+  .op { background: var(--op-bg); color: var(--op-fg); border-radius: 6px; padding: 3px 8px; font: 12px var(--mono); }
+  .arrow { color: var(--muted); }
+  ol.why { margin: 0 0 10px; padding-left: 20px; color: var(--muted); font-size: 13px; }
+  ol.why b { color: var(--text); font-weight: 600; }
+  ol.why .src { font-size: 11px; color: var(--accent); }
+  pre.out { background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 10px; margin: 0 0 10px; max-height: 220px; overflow: auto; white-space: pre-wrap; word-break: break-all; font: 12.5px/1.5 var(--mono); }
+  .iocs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .ioc { background: var(--bad-bg); color: var(--bad-fg); border-radius: 6px; padding: 2px 8px; font: 12px var(--mono); }
+  .ioc i { font-style: normal; color: var(--muted); margin-right: 4px; }
+  .ioc.medium { background: var(--warn-bg); color: var(--warn); }
+  .ioc.info { background: var(--over); color: var(--text); }
+  .alerts { border: 1px solid var(--bad); border-radius: 10px; padding: 10px 12px; background: var(--panel); }
+  .alerts h3 { margin: 0 0 6px; font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .alerts .cnt { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .alerts .cnt.high { background: var(--bad-bg); color: var(--bad-fg); } .alerts .cnt.medium { background: var(--warn-bg); color: var(--warn); } .alerts .cnt.info { background: var(--over); color: var(--text); }
+  .alerts details { margin-top: 4px; } .alerts summary { cursor: pointer; font-size: 13px; }
+  .alerts table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 6px; }
+  .alerts td { padding: 3px 6px; border-top: 1px solid var(--border); vertical-align: top; word-break: break-all; }
+  .alerts td.v { font-family: var(--mono); }
+  details.rv { margin: 0 0 10px; } details.rv summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+  table.mini { border-collapse: collapse; font-size: 12px; margin: 6px 0; } table.mini td, table.mini th { padding: 2px 8px; border-top: 1px solid var(--border); text-align: left; }
+  .lk { font-size: 12px; } .steppv { white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow: auto; font: 11.5px var(--mono); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; margin: 0; }
+  #batchTbl td { vertical-align: top; }
+  #tiExport { width: auto; max-width: 140px; padding: 3px 6px; font-size: 12px; }
+  mark.hl { border-radius: 3px; padding: 0 1px; color: inherit; }
+  mark.hl.high { background: rgba(255, 80, 70, .35); outline: 1px solid rgba(255, 80, 70, .7); }
+  mark.hl.medium { background: rgba(230, 170, 20, .35); }
+  mark.hl.info { background: rgba(60, 140, 255, .25); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .empty { color: var(--muted); text-align: center; padding: 40px 10px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #editor .step { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: start; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+  #editor .step.off { opacity: .5; }
+  #editor .step.bad { border-color: var(--bad); }
+  #editor .step .n { color: var(--muted); font-weight: 700; padding-top: 4px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  #editor .step .n input { width: auto; margin: 0; }
+  #editor .step .f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  #editor .step .b { display: flex; flex-direction: column; gap: 4px; }
+  #editor .opname { font-weight: 600; }
+  #editor .opname.err { border-color: var(--bad); }
+  #editor .argrow { display: grid; grid-template-columns: minmax(90px, 34%) 1fr; gap: 6px; align-items: center; font-size: 12px; }
+  #editor .argrow > span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #editor .argrow .pair { display: flex; gap: 4px; min-width: 0; }
+  #editor .argrow .pair select { flex: 0 0 auto; width: auto; }
+  #editor .argrow .pair input { flex: 1; min-width: 0; }
+  #editor .argrow input[type=checkbox] { width: auto; justify-self: start; }
+  #editor .argrow input, #editor .argrow select { font-size: 12px; }
+  #editor .steperr { color: var(--bad); font-size: 12px; }
+  #editor .opdesc { color: var(--muted); font-size: 11.5px; }
+  #editorOut { white-space: pre-wrap; word-break: break-all; max-height: 300px; }
+  #edState { font-size: 12px; }
+  .stats { font-size: 12px; color: var(--muted); }
+  .lib { display: flex; gap: 8px; align-items: center; background: var(--warn-bg); color: var(--warn); border-radius: 7px; padding: 6px 10px; margin: 0 0 8px; font-size: 13px; }
+  .lib a { color: inherit; }
+  .loopnote { color: var(--muted); font-size: 12px; margin: -4px 0 8px; }
+  .toolbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  dialog { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 18px; max-width: 760px; width: 92vw; }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  dialog h3 { margin: 0 0 10px; }
+  .libitem { border-top: 1px solid var(--border); padding: 10px 0; }
+  .libitem:first-of-type { border-top: 0; }
+  .libitem .fam { color: var(--muted); font-size: 12px; }
+  .ai-box { background: var(--panel); border: 1px dashed var(--border); border-radius: 10px; padding: 12px 14px; }
+  .note { color: var(--muted); font-size: 12px; }
+  .err-box { background: var(--bad-bg); color: var(--bad-fg); border-radius: 7px; padding: 8px 10px; font-size: 13px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; height: auto; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>AutoChef</h1>
+  <span class="sub">Finds the CyberChef recipe for you. Everything runs locally on your machine.</span>
+  <span class="spacer"></span>
+  <button class="small" id="batchBtn" title="Analyse many files or a zip at once">Batch</button>
+  <button class="small" id="libBtn" title="Known patterns from published analyses and your team's saved recipes">Recipe library</button>
+  <button class="small" id="settingsBtn" title="AI assistant and threat-intel settings">Settings</button>
+  <button class="small" id="theme" title="Switch light / dark theme"></button>
+  <a href="https://gchq.github.io/CyberChef/" target="_blank" rel="noopener">Open CyberChef ↗</a>
+</header>
+
+<main>
+  <section class="col">
+    <div class="card" style="display:flex;flex-direction:column;gap:10px;flex:none">
+      <h2>Input <span class="r muted" id="inInfo">0 bytes</span></h2>
+      <textarea id="input" spellcheck="false" placeholder="Paste an encoded/obfuscated string, script or command line here, or drop a file below…"></textarea>
+      <div class="drop" id="drop">Drop a file here or <u>browse</u> (binary files are fine) <input type="file" id="file" hidden></div>
+      <div class="row">
+        <label>Crib (text you expect in the output, optional)<input id="crib" placeholder="e.g. http, MZ, flag{"></label>
+        <label style="max-width:110px">Max steps<input id="depth" type="number" min="1" max="100" value="64"></label>
+        <label style="max-width:120px">Time limit (s)<input id="time" type="number" min="1" max="60" value="12"></label>
+      </div>
+      <label>Keys / passwords / IVs (optional, one per line: text, hex or Base64)
+        <textarea id="keys" rows="2" spellcheck="false" autocomplete="off" placeholder="e.g. infected&#10;00112233445566778899aabbccddeeff  (a 2nd line of the right length is used as IV / nonce)" style="min-height:44px;height:48px;font:12.5px var(--mono)"></textarea></label>
+      <div class="row">
+        <button class="primary" id="go">Find recipe</button>
+        <label class="switch"><input type="checkbox" id="auto" checked> Auto-run while typing</label>
+        <span class="spacer" style="flex:1"></span>
+        <button class="small" id="clear">Clear</button>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="card" id="editor" hidden>
+      <h2>Recipe editor <span class="r toolbar"><span id="edState" class="muted"></span><button class="small" id="addStep">+ Add operation</button></span></h2>
+      <div id="steps"></div>
+      <datalist id="opList"></datalist>
+      <div class="row" style="margin-bottom:8px">
+        <button class="primary" id="edRun" title="Run the recipe on the input now (Ctrl+Enter)">▶ Run recipe</button>
+        <label class="switch"><input type="checkbox" id="edAuto" checked> Auto-bake on every change</label>
+        <span class="spacer" style="flex:1"></span>
+        <button class="small" id="edUndo" title="Undo (Ctrl+Z)">↶ Undo</button>
+        <button class="small" id="edRedo" title="Redo (Ctrl+Y)">↷ Redo</button>
+        <label class="switch" title="Show the output after every step"><input type="checkbox" id="edSteps"> Step outputs</label>
+        <button class="small" id="edSave" title="Save this recipe to your team library">Save to library</button>
+        <button class="small" id="edReset" title="Go back to the recipe AutoChef found">Reset</button>
+      </div>
+      <div class="row" style="margin-bottom:8px">
+        <span class="muted" id="editorInfo" style="flex:1"></span>
+        <button class="small" id="edUseOut" title="Replace the input with this output and search again">Use output as input</button>
+        <button class="small" id="edDl">Download output</button>
+        <button class="small" id="edCopy">Copy recipe</button>
+        <button class="small" id="edOpen">Open in CyberChef ↗</button>
+      </div>
+      <pre class="out" id="editorOut"></pre>
+      <details class="rv" id="edReadable" hidden><summary>Readable view (AutoChef cleanup, not a CyberChef step)</summary><pre class="out" id="edReadableOut"></pre></details>
+    </div>
+  </section>
+
+  <section class="col">
+    <div class="card" style="padding:10px 14px"><h2 style="margin:0">Suggested recipes <span class="r toolbar"><span class="muted" id="resInfo"></span>
+      <button class="small" data-export="md" title="Markdown report for tickets / case notes">Export .md</button>
+      <button class="small" data-export="csv" title="Indicators (URLs, IPs, domains, files) as CSV">IOCs .csv</button>
+      <button class="small" data-export="json" title="Full machine-readable result">.json</button>
+      <select id="tiExport" class="small" title="Threat-intel exports" style="width:auto"><option value="">Export to…</option><option value="stix">STIX 2.1 bundle</option><option value="misp">MISP event</option><option value="sigma">Sigma rule (starter)</option><option value="yara">YARA rule (starter)</option></select></span></h2></div>
+    <div class="ai-box" id="aiBox" hidden>
+      <div class="row"><b>AI assistant</b><span class="note" style="flex:1">Proposes extra recipes; every proposal is run and scored by CyberChef before you see it.</span><button class="small" id="aiGo">Ask AI for more recipes</button></div>
+      <div id="aiOut"></div>
+    </div>
+    <div id="results"><div class="empty">Paste or drop something on the left. AutoChef tries CyberChef operations layer by layer, scores every output, and ranks the recipes that produce readable code, URLs, IPs or real files.</div></div>
+  </section>
+</main>
+
+<dialog id="libDlg">
+  <h3>Recipe library</h3>
+  <p class="note">Known obfuscation patterns from published analyses. When a sample matches, the recipe is tried first and the result shows the source. Each entry was verified against the real sample that accompanies its source.</p>
+  <h3 style="margin-top:8px">Team library <span class="r"><button class="small" id="teamExport">Export</button> <label class="small" style="display:inline"><input type="file" id="teamImport" accept=".json" hidden><u style="cursor:pointer">Import…</u></label></span></h3>
+  <div id="teamList" class="note">Loading…</div>
+  <h3 style="margin-top:12px">Published patterns</h3>
+  <div id="libList">Loading…</div>
+  <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="small" onclick="this.closest('dialog').close()">Close</button></div>
+</dialog>
+
+<dialog id="setDlg">
+  <h3>AI assistant</h3>
+  <p class="note">Optional. Works with <b>any AI provider</b>: Anthropic (Claude), OpenAI, Google Gemini, Mistral, Groq, OpenRouter, DeepSeek, xAI, Together, a local Ollama or LM Studio, or any other OpenAI-compatible API (enter its base URL). When you click "Ask AI", an excerpt of the sample (first 6 KB) and AutoChef's best attempts are sent to the provider you chose. <b>Do not use a cloud provider for samples you may not share</b>; a local model keeps everything on your machine. The key is kept in the AutoChef process memory only and is forgotten when it stops.</p>
+  <div class="row">
+    <label class="note">Provider<select id="aiProvider"></select></label>
+    <label class="note" id="aiBaseWrap">Base URL<input id="aiBase" placeholder="https://host/v1" autocomplete="off"></label>
+  </div>
+  <label class="note" id="aiKeyWrap">API key<input id="aiKey" type="password" placeholder="paste your key (the provider is detected from it when possible)" autocomplete="off"></label>
+  <div class="row">
+    <label class="note" style="flex:1">Model<input id="aiModel" list="aiModels" placeholder="load the list or type a model id" autocomplete="off"></label>
+    <datalist id="aiModels"></datalist>
+    <button class="small" id="aiLoadModels" style="align-self:flex-end">Load models</button>
+  </div>
+  <p class="note" id="aiStatus"></p>
+  <div class="row" style="justify-content:flex-end"><button class="small" id="aiForget">Forget key</button><button class="small primary" id="aiSave">Save</button></div>
+  <h3 style="margin-top:14px">Threat-intel lookups</h3>
+  <p class="note">Optional and off until you add a key. Nothing is sent until you click <b>Look up</b> next to a finding, and then only that one value goes to the services below. Bitcoin addresses are checked on Blockstream without a key; other wallets get explorer links. Keys are kept in memory only.</p>
+  <div class="row"><label class="note">VirusTotal API key<input id="tiVT" type="password" autocomplete="off"></label><label class="note">AbuseIPDB API key<input id="tiAbuse" type="password" autocomplete="off"></label><label class="note">abuse.ch Auth-Key (URLhaus)<input id="tiUH" type="password" autocomplete="off"></label></div>
+  <p class="note" id="tiStatus"></p>
+  <div class="row" style="justify-content:flex-end"><button class="small" id="tiForget">Forget keys</button><button class="small primary" id="tiSave">Save keys</button><button class="small" onclick="this.closest('dialog').close()">Close</button></div>
+</dialog>
+
+<dialog id="diffDlg">
+  <h3>Browser edition vs. local version</h3>
+  <table class="mini">
+    <tr><th>Feature</th><th>Browser edition (this page)</th><th>Local version (npm start / Docker)</th></tr>
+    <tr><td>Decoding, recipes, editor, keys, findings, exports, Office, PE, ransom notes</td><td>Same engine, runs in your browser</td><td>Same engine, runs on your machine</td></tr>
+    <tr><td>Where samples go</td><td>Nowhere: they stay in this browser tab</td><td>Nowhere: they stay on your machine</td></tr>
+    <tr><td>Reputation lookups</td><td>Bitcoin on Blockstream; other services open as links</td><td>VirusTotal, AbuseIPDB, URLhaus with your keys</td></tr>
+    <tr><td>Team library</td><td>Kept in this browser; share by export / import</td><td>A JSON file a team can share (folder or git)</td></tr>
+    <tr><td>Plugins</td><td>Bundled ones; extra files for one session (with a warning)</td><td>Every file in the plugins folder</td></tr>
+    <tr><td>AI assistant</td><td>Called directly from the page; only providers that allow browser calls, or a local Ollama with browser access enabled</td><td>Called from the local server; every provider</td></tr>
+    <tr><td>DES / 3DES checks</td><td>Done in the browser</td><td>Depend on the OpenSSL in Node.js (often missing)</td></tr>
+    <tr><td>Blowfish / RC2 pre-checks</td><td>Not available (CyberChef can still run these ciphers in the editor)</td><td>Depend on the OpenSSL in Node.js</td></tr>
+    <tr><td>Command line, batch reports to disk, browser extension</td><td>No (batch works in the page, reports are downloaded)</td><td>Yes</td></tr>
+    <tr><td>Speed and file size</td><td>Your computer; browser memory limits very large files</td><td>Your computer; up to 20 MB in the web UI</td></tr>
+  </table>
+  <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="small" onclick="this.closest('dialog').close()">Close</button></div>
+</dialog>
+
+<dialog id="saveDlg">
+  <h3>Save to team library</h3>
+  <p class="note">Saved recipes are tried first on new samples (when the detection patterns match, or on every sample if you leave them empty). The library is a JSON file (<code id="teamFile"></code>) that your team can share in a folder or in git.</p>
+  <label class="note">Name<input id="svName" placeholder="e.g. Emotet doc: filler + Base64 + UTF-16"></label>
+  <label class="note">Family / campaign<input id="svFamily" placeholder="optional"></label>
+  <label class="note">Detection patterns (regular expressions, one per line; all must match the input)<textarea id="svDetect" rows="2" spellcheck="false" placeholder="optional, e.g. =PO32"></textarea></label>
+  <label class="note">Notes<textarea id="svNotes" rows="2"></textarea></label>
+  <label class="note">Author<input id="svAuthor" placeholder="optional"></label>
+  <p class="note" id="svStatus"></p>
+  <div class="row" style="justify-content:flex-end"><button class="small primary" id="svSave">Save</button><button class="small" onclick="this.closest('dialog').close()">Close</button></div>
+</dialog>
+
+<dialog id="batchDlg">
+  <h3>Batch analysis</h3>
+  <p class="note">Choose several files, or zips (password-protected malware zips use the password below). Each file is analysed like a single input; you get one table and one combined report.</p>
+  <div class="row"><input type="file" id="batchFiles" multiple><label class="note" style="max-width:160px">Zip password<input id="batchPw" value="infected"></label><label class="note" style="max-width:130px">Seconds per file<input id="batchTime" type="number" value="8" min="1" max="60"></label><button class="small primary" id="batchGo">Analyse</button></div>
+  <p class="note" id="batchStatus"></p>
+  <div style="max-height:50vh;overflow:auto"><table class="mini" id="batchTbl"></table></div>
+  <div class="row" style="justify-content:flex-end" id="batchExp" hidden><span class="note">Download:</span><button class="small" data-bx="md">Report .md</button><button class="small" data-bx="csv">Alerts .csv</button><button class="small" data-bx="json">.json</button><button class="small" data-bx="stix">STIX</button><button class="small" data-bx="misp">MISP</button></div>
+  <div class="row" style="justify-content:flex-end"><button class="small" onclick="this.closest('dialog').close()">Close</button></div>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+// "browser" = static online edition (everything runs in this page); otherwise the local server
+const BROWSER = window.AUTOCHEF_EDITION === "browser";
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let inputBytes = new Uint8Array(0);   // the exact bytes we analyse
+let fromFile = null;                  // file name, when input came from a file
+let results = [];
+let editing = null;                   // recipe being edited [{op,args}]
+let runId = 0;
+let lastAnalysis = null;
+
+// ---------- theme toggle ----------
+function paintThemeBtn() { $("#theme").textContent = document.documentElement.dataset.theme === "light" ? "☾ Dark mode" : "☀ Light mode"; }
+$("#theme").addEventListener("click", () => {
+  const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem("autochef-theme", t); } catch (e) {}
+  paintThemeBtn();
+});
+paintThemeBtn();
+
+// ---------- input handling ----------
+function setBytesFromText() {
+  fromFile = null; editorInput = null;
+  inputBytes = new TextEncoder().encode($("#input").value);
+  updateInInfo();
+  if (editing && !$("#editor").hidden && $("#edAuto").checked) bakeEditorSoon(); // the editor follows the input, like CyberChef
+}
+function updateInInfo() {
+  $("#inInfo").textContent = `${inputBytes.length.toLocaleString()} bytes${fromFile ? " · " + fromFile : ""}`;
+}
+function toB64(bytes) {
+  let s = ""; const CH = 0x8000;
+  for (let i = 0; i < bytes.length; i += CH) s += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
+  return btoa(s);
+}
+function fromB64(b64) { const s = atob(b64); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
+
+async function loadFile(f) {
+  const buf = new Uint8Array(await f.arrayBuffer());
+  inputBytes = buf; fromFile = f.name; editorInput = null;
+  // show text if printable, otherwise a hex preview (the real bytes are kept separately)
+  let printable = 0; for (let i = 0; i < Math.min(buf.length, 4096); i++) { const b = buf[i]; if ((b >= 32 && b < 127) || b === 9 || b === 10 || b === 13) printable++; }
+  if (printable / Math.max(1, Math.min(buf.length, 4096)) > 0.95) $("#input").value = new TextDecoder().decode(buf.subarray(0, 500000));
+  else $("#input").value = `[binary file: ${f.name}, ${buf.length} bytes. Analysing the raw bytes. Editing this box replaces the file with text.]\n\n` + [...buf.subarray(0, 512)].map(b => b.toString(16).padStart(2, "0")).join(" ");
+  updateInInfo();
+  run();
+}
+
+$("#input").addEventListener("input", () => { setBytesFromText(); if ($("#auto").checked) debounceRun(); });
+$("#drop").addEventListener("click", () => $("#file").click());
+$("#file").addEventListener("change", e => e.target.files[0] && loadFile(e.target.files[0]));
+["dragenter", "dragover"].forEach(ev => $("#drop").addEventListener(ev, e => { e.preventDefault(); $("#drop").classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => $("#drop").addEventListener(ev, e => { e.preventDefault(); $("#drop").classList.remove("over"); }));
+$("#drop").addEventListener("drop", e => e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]));
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { e.preventDefault(); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+$("#go").addEventListener("click", () => { editorDirty = false; run(); }); // an explicit search loads its best recipe into the editor
+$("#clear").addEventListener("click", () => { $("#input").value = ""; setBytesFromText(); results = []; renderResults(); $("#editor").hidden = true; $("#stats").textContent = ""; });
+$("#crib").addEventListener("input", () => $("#auto").checked && debounceRun());
+$("#keys").addEventListener("input", () => $("#auto").checked && debounceRun());
+
+let t; function debounceRun() { clearTimeout(t); t = setTimeout(run, 600); }
+
+// ---------- analysis ----------
+async function run() {
+  if (!inputBytes.length) { results = []; renderResults(); return; }
+  const id = ++runId;
+  $("#resInfo").innerHTML = '<span class="spinner"></span> searching…';
+  $("#go").disabled = true;
+  try {
+    const r = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      inputBase64: toB64(inputBytes), crib: $("#crib").value, keys: $("#keys").value.split(/\r?\n/).filter(x => x.trim()), fileName: fromFile || "", maxDepth: +$("#depth").value, timeBudgetMs: +$("#time").value * 1000 }) });
+    const data = await r.json();
+    if (id !== runId) return; // a newer run started
+    if (data.error) throw new Error(data.error);
+    results = data.results;
+    lastAnalysis = { ...data, results: data.results.map(r => ({ ...r, output: { ...r.output, base64: undefined } })) };
+    $("#stats").textContent = `Explored ${data.stats.explored} candidate outputs (${data.stats.tried} CyberChef operations tried) in ${(data.stats.ms / 1000).toFixed(2)} s${data.stats.timedOut ? " · time limit reached" : ""}.`;
+    renderResults();
+    if (data.alerts && data.alerts.length) $("#results").insertAdjacentHTML("afterbegin", alertPanel(data.alerts, data.alertSummary));
+    if (data.inputPE) $("#results").insertAdjacentHTML("afterbegin", `<div class="lib" style="display:block">🧩 <b>Windows executable.</b> ${peHtml(data.inputPE)}</div>`);
+    if (data.office) $("#results").insertAdjacentHTML("afterbegin", `<div class="lib" style="display:block">📄 <b>${esc(data.office.container)}.</b> ${data.office.modules.length} VBA module(s): ${esc(data.office.modules.map(m => m.name).join(", ") || "none")}${data.office.embedded.length ? `; ${data.office.embedded.length} link(s), macro sheet(s) or long string(s)` : ""}. The macro source is result #1; the recipes start from it.</div>`);
+    if (data.ransom) $("#results").insertAdjacentHTML("afterbegin", `<div class="alerts" style="border-color:var(--bad)"><h3>🏴 Ransom note${data.ransom.families[0] ? `: <span class="cnt high">${esc(data.ransom.families[0].family)}</span>` : ""}</h3><div class="note">${linkify(esc(data.ransom.message))}</div></div>`);
+    if (data.hash) $("#results").insertAdjacentHTML("afterbegin", `<div class="lib" style="display:block"># <b>One-way hash (${esc(data.hash.types.join(" / "))}).</b> ${esc(data.hash.message)}</div>`);
+    if (data.assessment) $("#results").insertAdjacentHTML("afterbegin", `<div class="lib" style="display:block">🔒 <b>Encrypted data, no key in the sample.</b> ${esc(data.assessment.message)}</div>`);
+    if (results[0]) { if (!editorDirty) openEditor(0, false); else $("#edState").textContent = "Your edited recipe was kept · new results on the right"; }
+    else if (!editorDirty) $("#editor").hidden = true;
+  } catch (e) {
+    $("#results").innerHTML = `<div class="err-box">${esc(e.message)}</div>`;
+    $("#resInfo").textContent = "";
+  } finally { $("#go").disabled = false; }
+}
+
+function linkify(h) { return h.replace(/(https?:\/\/[^\s<)]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+function peHtml(p) {
+  const secs = p.sections.map(s => `<tr><td>${esc(s.name)}</td><td>${s.rawSize}</td><td>${s.entropy}</td><td>${esc(s.flags)}</td></tr>`).join("");
+  return `${esc(p.format)} ${esc(p.type)} · ${esc(p.machine)}${p.dotnet ? " · .NET" : ""} · ${esc(String(p.subsystem))} · compiled ${esc(p.compiled.slice(0, 19).replace("T", " "))} UTC · imphash <code>${esc(p.imphash || "-")}</code>${p.signed ? " · has a signature" : ""}${p.overlay ? ` · overlay ${p.overlay} bytes` : ""}${p.pdb ? ` · PDB <code>${esc(p.pdb)}</code>` : ""}
+    ${p.warnings.length ? `<div style="color:var(--bad)">⚠ ${esc(p.warnings.join("; "))}</div>` : ""}
+    ${p.notableImports.length ? `<div>Notable imports: <code>${esc(p.notableImports.join(", "))}</code></div>` : ""}
+    <details><summary>Sections, imports, exports, resources</summary><table class="mini"><tr><th>Section</th><th>Raw size</th><th>Entropy</th><th>Flags</th></tr>${secs}</table>
+    <div>Imports: ${p.imports.map(i => `<b>${esc(i.dll)}</b> (${i.count})`).join(", ") || "none"}</div>
+    ${p.exports.length ? `<div>Exports${p.dllName ? " of " + esc(p.dllName) : ""}: <code>${esc(p.exports.slice(0, 40).join(", "))}</code></div>` : ""}
+    <div>Resources: ${Object.entries(p.resources).map(([k, v]) => `${esc(k)} ×${v}`).join(", ") || "none"}</div></details>`;
+}
+
+// ---------- findings: alerts + highlighting ----------
+function shortType(t) { return t.replace(/ address$/, "").replace(/^Ethereum \/ EVM.*/, "ETH/EVM").replace(/ \(.*\)$/, "").replace(/ hash$/, ""); }
+function alertPanel(alerts, sum) {
+  const lv = l => alerts.filter(a => a.level === l);
+  const lookable = a => a.category === "crypto" || ["URL", "Domain", "IPv4 address", "IPv6 address"].includes(a.type) || / hash$/.test(a.type);
+  const rows = alerts.map((a, i) => `<tr><td><span class="cnt ${a.level}">${a.level}</span></td><td>${esc(a.type)}</td><td class="v">${esc(a.value)}</td><td>${esc(a.note || "")}${a.result ? ` <span class="muted">(#${a.result})</span>` : ""}</td><td>${lookable(a) ? `<button class="small" data-lookup="${i}" title="Ask the threat-intel services you configured (only this value is sent)">Look up</button><div class="lk"></div>` : ""}</td></tr>`).join("");
+  window._alerts = alerts;
+  const types = Object.entries(sum.byType).map(([k, v]) => `${esc(shortType(k))} ×${v}`).join(" · ");
+  return `<div class="alerts"><h3>⚠ Findings in the decoded output
+    ${sum.high ? `<span class="cnt high">${sum.high} high</span>` : ""}${sum.medium ? `<span class="cnt medium">${sum.medium} medium</span>` : ""}${sum.info ? `<span class="cnt info">${sum.info} info</span>` : ""}</h3>
+    <div class="note">${types}</div>
+    <details ${lv("high").length ? "open" : ""}><summary>Show all ${alerts.length}</summary><table>${rows}</table></details></div>`;
+}
+/** escape text and wrap every finding in a <mark> (longest first, so URLs win over the IPs inside them) */
+function highlight(text, findings) {
+  if (!findings || !findings.length) return esc(text);
+  const vals = [...new Map(findings.map(f => [f.value, f.level])).entries()].sort((a, b) => b[0].length - a[0].length);
+  const re = new RegExp(vals.map(([v]) => v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "g");
+  const level = new Map(vals);
+  let out = "", last = 0;
+  for (const m of text.matchAll(re)) {
+    out += esc(text.slice(last, m.index)) + `<mark class="hl ${level.get(m[0])}" title="${esc((findings.find(f => f.value === m[0]) || {}).type || "")}">${esc(m[0])}</mark>`;
+    last = m.index + m[0].length;
+  }
+  return out + esc(text.slice(last));
+}
+
+document.addEventListener("click", async e => {
+  const b = e.target.closest && e.target.closest("button[data-lookup]");
+  if (!b) return;
+  const a = window._alerts[+b.dataset.lookup], out = b.nextElementSibling;
+  out.innerHTML = '<span class="spinner"></span>';
+  const r = await (await fetch("/api/intel/lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: a.type, value: a.value, category: a.category }) })).json();
+  out.innerHTML = (r.results || []).map(x => `<div><b>${esc(x.service)}</b>: ${x.ok ? `<span class="cnt ${x.verdict === "malicious" ? "high" : x.verdict === "suspicious" ? "medium" : "info"}">${esc(x.verdict)}</span> ${esc(x.details || "")}` : `<span style="color:var(--bad)">${esc(x.error)}</span>`}${x.link ? ` <a href="${esc(x.link)}" target="_blank" rel="noopener">open</a>` : ""}</div>`).join("")
+    + (r.links || []).map(l => `<div><a href="${esc(l)}" target="_blank" rel="noopener">${esc(new URL(l).hostname)}</a></div>`).join("") + (r.note ? `<div class="note">${esc(r.note)}</div>` : "");
+});
+
+function renderResults() {
+  const box = $("#results");
+  $("#resInfo").textContent = results.length ? `${results.length} found` : "";
+  if (!results.length) {
+    const script = lastAnalysis?.input?.info?.script;
+    box.innerHTML = inputBytes.length && script ? `<div class="empty">The input is already readable <b>${esc(script)}</b> text: no hidden layer was found.<br>If you expect something hidden, add a <b>crib</b> or build the recipe in the editor.</div>` : inputBytes.length ? `<div class="empty">No convincing decoding found.<br>Try adding a <b>crib</b> (text you expect in the output), raising the time limit, or build the recipe yourself in the editor.</div>` : `<div class="empty">Paste or drop something on the left.</div>`;
+    return;
+  }
+  box.innerHTML = results.map((r, i) => {
+    const o = r.output;
+    const iocs = (o.findings || []).slice(0, 40).map(f => `<span class="ioc ${f.level}" title="${esc(f.type + (f.note ? " · " + f.note : ""))}"><i>${esc(shortType(f.type))}</i>${esc(f.value.length > 90 ? f.value.slice(0, 87) + "…" : f.value)}</span>`).join("");
+    const preview = o.isText ? highlight(o.preview.slice(0, 4000), o.findings) : esc(hexdump(o.hexPreview));
+    return `<div class="res" data-i="${i}">
+      <div class="res-head"><span class="rank">#${i + 1}</span><span class="badge ${r.confidence}" title="score ${r.score}/100">${r.confidence} confidence</span><span class="summary">${esc(r.summary)}</span></div>
+      ${r.library ? `<div class="lib">Known pattern: <b>${esc(r.library.name)}</b> <span>(${esc(r.library.family)})</span> · <a href="${esc(r.library.source.url)}" target="_blank" rel="noopener">source</a></div>` : ""}
+      <div class="chain">${r.recipe.map(op => `<span class="op">${esc(op.op)}</span>`).join('<span class="arrow">→</span>')}</div>
+      ${r.loop ? `<div class="loopnote">↻ ${esc(r.loop)}</div>` : ""}
+      <ol class="why">${r.steps.map(s => `<li><b>${esc(s.ops.join(" + "))}</b>${s.times ? ` ×${s.times}` : ""}: ${esc(s.why)} ${s.source && s.source !== "AutoChef" ? `<span class="src">[${esc(s.source)}]</span>` : ""}</li>`).join("")}</ol>
+      ${iocs ? `<div class="iocs">${iocs}</div>` : ""}
+      <pre class="out">${preview}</pre>
+      ${o.readable ? `<details class="rv"><summary>Readable view <span class="note">(AutoChef cleanup of the decoded script: joined strings, resolved -f / Chr(), canonical case, renamed random names. Not a CyberChef step.)</span></summary><pre class="out">${highlight(o.readable.slice(0, 20000), o.findings)}</pre></details>` : ""}
+      ${o.pe ? `<details class="rv" open><summary>Windows executable</summary><div class="note">${peHtml(o.pe)}</div></details>` : ""}
+      ${o.strings ? `<div class="note" style="margin:-4px 0 4px">Readable strings inside the binary:</div><pre class="out" style="max-height:120px">${highlight(String(o.strings), o.findings)}</pre>` : ""}
+      <div class="actions">
+        <button class="small" data-act="edit">Edit recipe</button>
+        <button class="small" data-act="open">Open in CyberChef ↗</button>
+        <button class="small" data-act="copy">Copy recipe</button>
+        ${r.recipe.length ? `<button class="small" data-act="save" title="Save this recipe to your team library">Save to library</button>` : ""}
+        <button class="small" data-act="dl">Download output${o.fileType ? " (." + esc(guessExt(o).replace(/_$/, "")) + ")" : ""}</button>
+      </div></div>`;
+  }).join("");
+  box.querySelectorAll("button[data-act]").forEach(b => b.addEventListener("click", () => {
+    const i = +b.closest(".res").dataset.i, r = results[i];
+    const act = b.dataset.act;
+    if (act === "edit") openEditor(i, true);
+    if (act === "open") openInCyberChef(r.recipe);
+    if (act === "save") saveToLibrary(r.recipe, r.summary);
+    if (act === "copy") copy(r.recipeString, b);
+    if (act === "dl") download(r.output.base64, `autochef_result${i + 1}.${guessExt(r.output)}`);
+  }));
+}
+
+function hexdump(hex) {
+  const bytes = hex.match(/../g) || []; let out = "";
+  for (let i = 0; i < bytes.length; i += 16) {
+    const row = bytes.slice(i, i + 16);
+    const asc = row.map(h => { const c = parseInt(h, 16); return c >= 32 && c < 127 ? String.fromCharCode(c) : "."; }).join("");
+    out += i.toString(16).padStart(8, "0") + "  " + row.join(" ").padEnd(48) + "  " + asc + "\n";
+  }
+  return out;
+}
+function guessExt(o) { if (!o.fileType) return o.isText ? "txt" : "bin"; const m = { "Windows": "exe_", "PDF": "pdf_", "ZIP": "zip_", "ELF": "elf_", "PNG": "png", "JPEG": "jpg", "GIF": "gif" }; for (const k in m) if (o.fileType.startsWith(k)) return m[k]; return "bin"; }
+function download(b64, name) {
+  if (!b64) return alert("Output too large to download from the browser; use the CLI with --save.");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([fromB64(b64)])); a.download = name; a.click();
+}
+function copy(text, btn) { navigator.clipboard.writeText(text).then(() => { const o = btn.textContent; btn.textContent = "Copied ✓"; setTimeout(() => btn.textContent = o, 1200); }); }
+
+// ---------- CyberChef link (same format CyberChef uses for its own "Save recipe" links) ----------
+function prettyRecipe(ops) {
+  return ops.map(o => `${o.op.replace(/ /g, "_")}(${JSON.stringify(o.args).slice(1, -1).replace(/'/g, "\\'").replace(/"((?:[^"\\]|\\.)*)"/g, "'$1'").replace(/\\"/g, '"')})`).join("");
+}
+function encFrag(str) {
+  const L = { "%2D": "-", "%2E": ".", "%5F": "_", "%7E": "~", "%21": "!", "%24": "$", "%27": "'", "%28": "(", "%29": ")", "%2A": "*", "%2C": ",", "%3B": ";", "%3A": ":", "%40": "@", "%2F": "/", "%3F": "?" };
+  return encodeURIComponent(str).replace(/%[0-9A-F]{2}/g, m => L[m] || m);
+}
+function openInCyberChef(ops) {
+  let url = "https://gchq.github.io/CyberChef/#recipe=" + encFrag(prettyRecipe(ops));
+  if (inputBytes.length <= 48 * 1024) url += "&input=" + encFrag(toB64(inputBytes).replace(/=+$/, ""));
+  else alert("The input is too large to put in a link. CyberChef will open with the recipe; paste or drop your input there.");
+  window.open(url, "_blank", "noopener");
+}
+
+// ---------- recipe library ----------
+async function refreshTeam() {
+  const t = await (await fetch("/api/team-library")).json();
+  window._team = t;
+  $("#teamList").innerHTML = t.entries.length ? t.entries.map(e => `<div class="libitem"><b>${esc(e.name)}</b> <button class="small" data-del="${esc(e.id)}" style="float:right">Delete</button><div class="fam">${esc(e.family || "")}${e.author ? " · " + esc(e.author) : ""} · ${esc(e.updated.slice(0, 10))}</div>
+    <div class="note">${esc(e.recipe.map(o => o.op).join(" → "))}${e.detect.length ? ` · detects: <code>${esc(e.detect.join(" ; "))}</code>` : " · tried on every input"}</div>${e.notes ? `<div class="note">${esc(e.notes)}</div>` : ""}</div>`).join("") : `No saved recipes yet. Use <b>Save to library</b> on a result or in the editor. File: <code>${esc(t.file)}</code>`;
+  $("#teamList").querySelectorAll("button[data-del]").forEach(b => b.addEventListener("click", async () => { if (!confirm("Delete this entry?")) return; await fetch("/api/team-library?id=" + encodeURIComponent(b.dataset.del), { method: "DELETE" }); refreshTeam(); }));
+}
+$("#teamExport").addEventListener("click", async () => { const t = await (await fetch("/api/team-library")).json(); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ format: "autochef-team-library/1", entries: t.entries }, null, 2)], { type: "application/json" })); a.download = "team-library.json"; a.click(); });
+$("#teamImport").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; let j; try { j = JSON.parse(await f.text()); } catch { return alert("Not a JSON file"); } const r = await (await fetch("/api/team-library/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(j) })).json(); alert(`Imported ${r.imported} entr${r.imported === 1 ? "y" : "ies"}.`); refreshTeam(); });
+let saveRecipe = null;
+async function saveToLibrary(recipe, summary) {
+  saveRecipe = JSON.parse(JSON.stringify(recipe));
+  const t = await (await fetch("/api/team-library")).json();
+  $("#teamFile").textContent = t.file; $("#svStatus").textContent = `Recipe: ${recipe.map(o => o.op).join(" → ")}`;
+  $("#svName").value = ""; $("#svFamily").value = ""; $("#svDetect").value = ""; $("#svNotes").value = summary || "";
+  $("#saveDlg").showModal();
+}
+$("#svSave").addEventListener("click", async () => {
+  const body = { name: $("#svName").value, family: $("#svFamily").value, notes: $("#svNotes").value, author: $("#svAuthor").value, detect: $("#svDetect").value.split(/\r?\n/).filter(x => x.trim()), recipe: saveRecipe };
+  const r = await (await fetch("/api/team-library", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })).json();
+  if (r.error) { $("#svStatus").textContent = "Not saved: " + r.error; return; }
+  $("#svStatus").textContent = `Saved as ${r.entry.id}.`; setTimeout(() => $("#saveDlg").close(), 700);
+});
+$("#libBtn").addEventListener("click", async () => {
+  $("#libDlg").showModal();
+  refreshTeam();
+  const lib = await (await fetch("/api/library")).json();
+  $("#libList").innerHTML = lib.map(e => `<div class="libitem"><b>${esc(e.name)}</b><div class="fam">${esc(e.family)}</div>
+    <div class="note">${e.recipe ? esc(e.recipe.map(o => o.op).join(" → ")) : esc(e.note || "")}</div>
+    <div class="note">Source: <a href="${esc(e.source.url)}" target="_blank" rel="noopener">${esc(e.source.title)}</a></div></div>`).join("");
+});
+
+// ---------- export ----------
+$("#tiExport").addEventListener("change", e => { const f = e.target.value; e.target.value = ""; if (f) exportAs(f); });
+document.querySelectorAll("button[data-export]").forEach(b => b.addEventListener("click", () => exportAs(b.dataset.export)));
+async function exportAs(fmt) {
+  if (!lastAnalysis || !inputBytes.length) return alert("Run an analysis first.");
+  const r = await fetch("/api/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ inputBase64: toB64(inputBytes), analysis: lastAnalysis, format: fmt, name: fromFile || "pasted-input" }) });
+  const blob = await r.blob();
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `autochef-report.${({ stix: "stix.json", misp: "misp.json", sigma: "sigma.yml", yara: "yar" })[fmt] || fmt}`; a.click();
+}
+
+// ---------- AI assistant ----------
+let aiProvidersLoaded = false;
+async function refreshAi() {
+  const st = await (await fetch("/api/ai/status")).json();
+  if (!aiProvidersLoaded) { $("#aiProvider").innerHTML = '<option value="">choose…</option>' + st.providers.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join(""); aiProvidersLoaded = true; }
+  $("#aiProvider").value = st.provider || "";
+  const p = st.providers.find(x => x.id === st.provider);
+  $("#aiBaseWrap").hidden = !(st.provider === "custom" || (p && p.noKey));
+  $("#aiBase").value = st.baseUrl || "";
+  $("#aiKeyWrap").hidden = !!(p && p.noKey);
+  if (st.model) $("#aiModel").value = st.model;
+  $("#aiBox").hidden = !st.available;
+  $("#aiStatus").textContent = st.available ? `Ready: ${st.providerName}, model ${st.model}.` : !st.provider ? "Off: choose a provider (or paste a key)." : (!st.hasKey && !st.noKey) ? `${st.providerName}: enter the API key.` : `${st.providerName}: pick a model.`;
+}
+async function aiConfig(body) { const r = await (await fetch("/api/ai/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })).json(); if (r.error) $("#aiStatus").textContent = r.error; await refreshAi(); return r; }
+$("#settingsBtn").addEventListener("click", () => { refreshAi(); $("#setDlg").showModal(); });
+$("#aiProvider").addEventListener("change", e => { $("#aiModel").value = ""; $("#aiModels").innerHTML = ""; aiConfig({ provider: e.target.value || null }); });
+$("#aiSave").addEventListener("click", async () => {
+  const body = { model: $("#aiModel").value.trim() || null };
+  if ($("#aiProvider").value) body.provider = $("#aiProvider").value;
+  if ($("#aiKey").value.trim()) body.key = $("#aiKey").value.trim();
+  if (!$("#aiBaseWrap").hidden && $("#aiBase").value.trim()) body.baseUrl = $("#aiBase").value.trim();
+  if (body.provider) { await aiConfig({ provider: body.provider }); }
+  await aiConfig({ key: body.key, model: body.model, baseUrl: body.baseUrl });
+  $("#aiKey").value = "";
+});
+$("#aiLoadModels").addEventListener("click", async () => {
+  // save what was typed first, so the list comes from the right provider with the right key
+  const body = {};
+  if ($("#aiProvider").value) body.provider = $("#aiProvider").value;
+  if (body.provider) await aiConfig({ provider: body.provider });
+  if ($("#aiKey").value.trim()) await aiConfig({ key: $("#aiKey").value.trim() });
+  if (!$("#aiBaseWrap").hidden && $("#aiBase").value.trim()) await aiConfig({ baseUrl: $("#aiBase").value.trim() });
+  $("#aiKey").value = "";
+  $("#aiStatus").innerHTML = '<span class="spinner"></span> loading models…';
+  const r = await (await fetch("/api/ai/models")).json();
+  if (!r.ok) { $("#aiStatus").textContent = r.error; return; }
+  $("#aiModels").innerHTML = r.models.map(m => `<option value="${esc(m.id)}">${esc(m.name && m.name !== m.id ? m.name : "")}</option>`).join("");
+  $("#aiStatus").textContent = `${r.models.length} models available: type or pick one in Model, then Save.`;
+});
+$("#aiForget").addEventListener("click", () => aiConfig({ key: null }));
+async function refreshTi() { const st = await (await fetch("/api/intel/status")).json(); const on = Object.entries(st.services).filter(([k, v]) => v && k !== "blockstream").map(([k]) => k); $("#tiStatus").textContent = on.length ? `Configured: ${on.join(", ")} (plus Blockstream for Bitcoin, no key).` : "No keys set: only Bitcoin lookups (Blockstream) and explorer links are available."; }
+$("#tiSave").addEventListener("click", async () => { const b = {}; if ($("#tiVT").value) b.virustotal = $("#tiVT").value; if ($("#tiAbuse").value) b.abuseipdb = $("#tiAbuse").value; if ($("#tiUH").value) b.urlhaus = $("#tiUH").value; await fetch("/api/intel/keys", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) }); $("#tiVT").value = $("#tiAbuse").value = $("#tiUH").value = ""; refreshTi(); });
+$("#tiForget").addEventListener("click", async () => { await fetch("/api/intel/keys", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ virustotal: null, abuseipdb: null, urlhaus: null }) }); refreshTi(); });
+$("#settingsBtn").addEventListener("click", refreshTi);
+
+// ---------- batch ----------
+let batchReports = {};
+$("#batchBtn").addEventListener("click", () => $("#batchDlg").showModal());
+$("#batchGo").addEventListener("click", async () => {
+  const files = [...$("#batchFiles").files];
+  if (!files.length) return;
+  $("#batchStatus").innerHTML = `<span class="spinner"></span> reading ${files.length} file(s)…`;
+  const payload = [];
+  for (const f of files) payload.push({ name: f.name, base64: toB64(new Uint8Array(await f.arrayBuffer())) });
+  $("#batchStatus").innerHTML = `<span class="spinner"></span> analysing… (about ${+$("#batchTime").value} s per file)`;
+  const t0 = Date.now();
+  const r = await (await fetch("/api/batch", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files: payload, password: $("#batchPw").value, timeBudgetMs: +$("#batchTime").value * 1000, keys: $("#keys").value.split(/\r?\n/).filter(x => x.trim()) }) })).json();
+  if (r.error) { $("#batchStatus").textContent = r.error; return; }
+  batchReports = r.reports;
+  $("#batchStatus").textContent = `${r.rows.length} file(s) in ${((Date.now() - t0) / 1000).toFixed(0)} s.`;
+  $("#batchTbl").innerHTML = "<tr><th>File</th><th>Result</th><th>High</th><th>Medium</th><th>Notes</th></tr>" + r.rows.map(x => x.error ? `<tr><td>${esc(x.name)}</td><td colspan="4" style="color:var(--bad)">${esc(x.error)}</td></tr>`
+    : `<tr><td>${esc(x.name)}</td><td>${x.top ? `<span class="badge ${x.top.confidence}">${x.top.confidence}</span> ${esc(x.top.summary)}` : "nothing decoded"}</td><td>${x.alerts?.high || 0}</td><td>${x.alerts?.medium || 0}</td><td>${[x.ransom && "ransom note", x.encrypted && "encrypted, no key", x.hash && "hash: " + x.hash, x.office !== null && x.office !== undefined && x.office + " macro module(s)", x.pe].filter(Boolean).map(esc).join(", ")}</td></tr>`).join("");
+  $("#batchExp").hidden = false;
+});
+document.querySelectorAll("button[data-bx]").forEach(b => b.addEventListener("click", () => {
+  const f = b.dataset.bx, txt = batchReports[f]; if (!txt) return;
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt])); a.download = `autochef-batch.${({ stix: "stix.json", misp: "misp.json" })[f] || f}`; a.click();
+}));
+$("#aiGo").addEventListener("click", async () => {
+  if (!inputBytes.length) return;
+  $("#aiOut").innerHTML = '<span class="spinner"></span> asking…';
+  const r = await (await fetch("/api/ai/suggest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ inputBase64: toB64(inputBytes), results: lastAnalysis ? lastAnalysis.results : [] }) })).json();
+  if (!r.ok) { $("#aiOut").innerHTML = `<div class="err-box">${esc(r.error)}</div>`; return; }
+  $("#aiOut").dataset.by = `${r.provider} · ${r.model}`;
+  aiSuggestions = r.suggestions;
+  $("#aiOut").innerHTML = r.suggestions.length ? r.suggestions.map((sg, i) => `<div class="libitem">
+     <div>${sg.verified.ok ? `<span class="badge ${sg.verified.confidence}">${sg.verified.confidence} · ${sg.verified.score}</span> ${esc(sg.verified.summary)}` : `<span class="badge low">failed in CyberChef</span> ${esc(sg.verified.error || "")}`}</div>
+     <div class="note">${esc(sg.why)}</div>
+     <div class="chain">${sg.recipe.map(o => `<span class="op">${esc(o.op)}</span>`).join('<span class="arrow">→</span>')}</div>
+     <button class="small" data-ai="${i}">Load into editor</button></div>`).join("") : "No suggestions.";
+  $("#aiOut").querySelectorAll("button[data-ai]").forEach(b => b.addEventListener("click", () => { editing = JSON.parse(JSON.stringify(aiSuggestions[+b.dataset.ai].recipe)); ensureOps(); $("#editor").hidden = false; renderSteps(); bakeEditor(); $("#editor").scrollIntoView({ behavior: "smooth" }); }));
+});
+let aiSuggestions = [];
+refreshAi();
+
+// ---------- edition differences ----------
+if (BROWSER) {
+  document.title = "AutoChef (browser edition)";
+  $(".sub").innerHTML = 'Browser edition: everything runs inside your browser, nothing is uploaded. <a href="#" id="edDiff">What differs from the local version?</a>';
+  $("#tiStatus").closest("dialog").querySelectorAll("#tiVT, #tiAbuse, #tiUH, #tiSave, #tiForget").forEach(el => (el.closest("label") || el).hidden = true);
+  $("#tiStatus").textContent = "Browser edition: VirusTotal, AbuseIPDB and URLhaus don't accept calls from web pages, so Look up opens their sites with the value instead. Bitcoin addresses are still checked live on Blockstream.";
+  $("#batchFiles").insertAdjacentHTML("afterend", ' <label class="note" style="max-width:none"><input type="checkbox" id="batchDir" style="width:auto"> pick a whole folder</label>');
+  $("#batchDir").addEventListener("change", e => { if (e.target.checked) $("#batchFiles").setAttribute("webkitdirectory", ""); else $("#batchFiles").removeAttribute("webkitdirectory"); });
+  $("#teamList").insertAdjacentHTML("beforebegin", '<p class="note">Browser edition: the team library is kept in this browser only. Share it with <b>Export</b> / <b>Import</b>.</p>');
+  // extra plugins for this session (they run as code in this page)
+  $("#libDlg h3").insertAdjacentHTML("beforebegin", '<p class="note">Plugins: <span id="plList"></span> <label class="small" style="display:inline"><input type="file" id="plFile" accept=".mjs,.js" hidden><u style="cursor:pointer">Add a plugin for this session…</u></label></p>');
+  fetch("/api/plugins").then(r => r.json()).then(p => $("#plList").textContent = p.plugins.map(x => x.name).join(", ") || "none");
+  $("#plFile").addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (!confirm(`A plugin is JavaScript that runs inside this page with full access to what you analyse. Only continue if you trust "${f.name}".`)) return;
+    try { const n = await window.AutoChef.addPluginFromText(f.name, await f.text()); alert(`Plugin "${n}" loaded for this session.`); fetch("/api/plugins").then(r => r.json()).then(p => $("#plList").textContent = p.plugins.map(x => x.name).join(", ")); }
+    catch (err) { alert("Plugin not loaded: " + err.message); }
+  });
+  document.addEventListener("click", e => { if (e.target.id === "edDiff") { e.preventDefault(); $("#diffDlg").showModal(); } });
+}
+
+// ---------- recipe editor ----------
+// Every change (operation, argument, order, enable/disable) re-bakes at once with CyberChef;
+// "▶ Run recipe" bakes on demand (also when auto-bake is off).
+let editorInput = null;
+const edIn = () => toB64(editorInput || inputBytes);
+let opsLoaded = null, opNames = new Set(), editorDirty = false, editingOrigin = null, bakeSeq = 0, lastBake = null;
+const opInfoCache = new Map();
+async function ensureOps() {
+  if (opsLoaded) return opsLoaded;
+  opsLoaded = fetch("/api/operations").then(r => r.json()).then(ops => { opNames = new Set(ops); $("#opList").innerHTML = ops.map(o => `<option value="${esc(o)}">`).join(""); });
+  return opsLoaded;
+}
+async function getOpInfo(name) {
+  if (!opInfoCache.has(name)) opInfoCache.set(name, fetch("/api/op-info?op=" + encodeURIComponent(name)).then(r => r.json()).catch(() => null));
+  return opInfoCache.get(name);
+}
+function openEditor(i, scroll) {
+  ensureOps();
+  document.querySelectorAll(".res").forEach(el => el.classList.toggle("sel", +el.dataset.i === i));
+  editing = JSON.parse(JSON.stringify(results[i].recipe));
+  // results found on extracted Office macros start from that text, not from the document file
+  editorInput = results[i].inputBase64 ? fromB64(results[i].inputBase64) : null;
+  editingOrigin = JSON.parse(JSON.stringify(results[i].recipe));
+  editorDirty = false; $("#edState").textContent = "";
+  $("#editor").hidden = false;
+  snapReset();
+  renderSteps(); bakeEditor();
+  if (scroll) $("#editor").scrollIntoView({ behavior: "smooth" });
+}
+// undo / redo: snapshots of the recipe; quick successive edits (typing) are merged into one step
+let undoStack = [], redoStack = [], lastSnap = null, lastSnapAt = 0;
+function snapReset() { undoStack = []; redoStack = []; lastSnap = JSON.stringify(editing); updUndo(); }
+function updUndo() { $("#edUndo").disabled = !undoStack.length; $("#edRedo").disabled = !redoStack.length; }
+function restore(snap) { editing = JSON.parse(snap); lastSnap = snap; editorDirty = true; $("#edState").textContent = "Edited"; renderSteps(); bakeEditor(); updUndo(); }
+$("#edUndo").addEventListener("click", () => { if (!undoStack.length) return; redoStack.push(JSON.stringify(editing)); restore(undoStack.pop()); });
+$("#edRedo").addEventListener("click", () => { if (!redoStack.length) return; undoStack.push(JSON.stringify(editing)); restore(redoStack.pop()); });
+document.addEventListener("keydown", e => {
+  if (!(e.ctrlKey || e.metaKey) || $("#editor").hidden || !e.target.closest || !e.target.closest("#editor")) return;
+  if (e.key === "z" && !e.shiftKey) { e.preventDefault(); $("#edUndo").click(); }
+  if (e.key === "y" || (e.key === "z" && e.shiftKey)) { e.preventDefault(); $("#edRedo").click(); }
+});
+$("#edSave").addEventListener("click", () => saveToLibrary(activeRecipe(), lastBake && lastBake.ok ? lastBake.summary : ""));
+$("#edSteps").addEventListener("change", () => { if ($("#edSteps").checked) showStepOutputs(); else document.querySelectorAll("#steps .steppv").forEach(x => x.remove()); });
+async function showStepOutputs() {
+  const recipe = activeRecipe();
+  if (!recipe.length) return;
+  const r = await (await fetch("/api/bake-steps", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ inputBase64: edIn(), recipe }) })).json();
+  document.querySelectorAll("#steps .steppv").forEach(x => x.remove());
+  let k = -1;
+  editing.forEach((st, i) => {
+    if (st.disabled) return;
+    const res = (r.steps || [])[++k];
+    const el = document.querySelector(`#steps .step[data-i="${i}"] .f`);
+    if (!el || !res) return;
+    el.insertAdjacentHTML("beforeend", `<pre class="steppv">${res.ok ? `<span class="muted">${res.size} bytes · ${esc(res.kind)}</span>\n${esc(res.isText ? res.preview : res.preview.replace(/(..)/g, "$1 "))}` : `<span style="color:var(--bad)">${esc(res.error)}</span>`}</pre>`);
+  });
+}
+function changed(rerender) {
+  const now = Date.now(), cur = JSON.stringify(editing);
+  if (lastSnap !== null && cur !== lastSnap) {
+    if (!(now - lastSnapAt < 700 && !rerender && undoStack.length)) undoStack.push(lastSnap);
+    redoStack = []; lastSnapAt = now; updUndo();
+  }
+  lastSnap = cur;
+  editorDirty = true;
+  $("#edState").textContent = "Edited";
+  if (rerender) renderSteps();
+  if ($("#edAuto").checked) bakeEditorSoon(); else $("#editorInfo").innerHTML = '<span style="color:var(--warn)">Recipe changed: press ▶ Run recipe</span>';
+}
+function argWidget(a, v, i, j) {
+  const id = `a${i}_${j}`;
+  if (a.type === "boolean") return `<input type="checkbox" id="${id}" ${v ? "checked" : ""}>`;
+  if (a.type === "number") return `<input type="number" id="${id}" value="${esc(String(v ?? ""))}" step="any">`;
+  if (a.type === "toggleString") {
+    const o = v && typeof v === "object" ? v : { option: (a.toggleValues || [""])[0], string: String(v ?? "") };
+    return `<span class="pair"><input id="${id}" value="${esc(String(o.string ?? ""))}" spellcheck="false" autocomplete="off"><select id="${id}t">${(a.toggleValues || []).map(t => `<option ${t === o.option ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></span>`;
+  }
+  if ((a.type === "option" || a.type === "argSelector") && a.options) {
+    const opts = a.options.map(o => String(o.value));
+    return `<select id="${id}">${(opts.includes(String(v)) ? [] : [String(v)]).concat(opts).map(o => `<option ${o === String(v) ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  }
+  if ((a.type === "editableOption" || a.type === "populateOption") && a.options) {
+    return `<span class="pair"><input id="${id}" value="${esc(String(v ?? ""))}" spellcheck="false"><select id="${id}p" title="Presets"><option value="">presets…</option>${a.options.map((o, k) => `<option value="${k}">${esc(o.name)}</option>`).join("")}</select></span>`;
+  }
+  if (a.type === "text") return `<textarea id="${id}" rows="2" spellcheck="false">${esc(String(v ?? ""))}</textarea>`;
+  return `<input id="${id}" value="${esc(typeof v === "object" ? JSON.stringify(v) : String(v ?? ""))}" spellcheck="false" autocomplete="off">`;
+}
+async function renderSteps() {
+  await ensureOps();
+  const infos = await Promise.all(editing.map(s => getOpInfo(s.op)));
+  $("#steps").innerHTML = editing.map((s, i) => {
+    const info = infos[i] && !infos[i].error ? infos[i] : null;
+    const args = info ? info.args.map((a, j) => `<label class="argrow"><span title="${esc(a.name)}">${esc(a.name)}</span>${argWidget(a, s.args[j], i, j)}</label>`).join("")
+      : `<label class="argrow"><span>Arguments (JSON)</span><input id="a${i}_json" value="${esc(JSON.stringify(s.args))}" spellcheck="false"></label>`;
+    return `<div class="step ${s.disabled ? "off" : ""}" data-i="${i}">
+      <div class="n">${i + 1}<input type="checkbox" class="en" title="Enable / disable this step" ${s.disabled ? "" : "checked"}></div>
+      <div class="f"><input class="opname ${opNames.size && !opNames.has(s.op) && !info ? "err" : ""}" list="opList" value="${esc(s.op)}" spellcheck="false" autocomplete="off" title="Type or pick an operation">
+        ${info && info.description ? `<div class="opdesc">${esc(info.description.slice(0, 160))}${info.description.length > 160 ? "…" : ""}</div>` : ""}
+        ${args}<div class="steperr" hidden></div></div>
+      <div class="b"><button class="small" data-a="up" title="Move up">↑</button><button class="small" data-a="down" title="Move down">↓</button><button class="small" data-a="dup" title="Duplicate">⧉</button><button class="small" data-a="del" title="Remove">✕</button></div></div>`;
+  }).join("") || '<div class="muted" style="margin-bottom:8px">No operations. Add one.</div>';
+
+  $("#steps").querySelectorAll(".step").forEach(el => {
+    const i = +el.dataset.i, info = infos[i] && !infos[i].error ? infos[i] : null;
+    const nameEl = el.querySelector(".opname");
+    // switch operation as soon as the typed/picked name is a real operation
+    const switchOp = async () => {
+      const name = nameEl.value.trim();
+      if (!opNames.has(name) || name === editing[i].op) { nameEl.classList.toggle("err", !opNames.has(name)); return; }
+      const inf = await getOpInfo(name);
+      editing[i] = { op: name, args: inf && inf.args ? inf.args.map(a => a.value) : [] };
+      changed(true);
+    };
+    nameEl.addEventListener("input", switchOp);
+    nameEl.addEventListener("change", switchOp);
+    el.querySelector(".en").addEventListener("change", e => { editing[i].disabled = !e.target.checked; el.classList.toggle("off", !!editing[i].disabled); changed(false); });
+    if (info) info.args.forEach((a, j) => {
+      const w = el.querySelector(`#a${i}_${j}`);
+      if (!w) return;
+      const read = () => {
+        if (a.type === "boolean") return w.checked;
+        if (a.type === "number") return w.value === "" ? "" : Number(w.value);
+        if (a.type === "toggleString") return { option: el.querySelector(`#a${i}_${j}t`).value, string: w.value };
+        return w.value;
+      };
+      const upd = () => { editing[i].args[j] = read(); changed(false); };
+      w.addEventListener("input", upd); w.addEventListener("change", upd);
+      const t = el.querySelector(`#a${i}_${j}t`); if (t) t.addEventListener("change", upd);
+      const p = el.querySelector(`#a${i}_${j}p`);
+      if (p) p.addEventListener("change", () => { if (p.value === "") return; w.value = a.options[+p.value].value; p.value = ""; upd(); });
+    });
+    const js = el.querySelector(`#a${i}_json`);
+    if (js) js.addEventListener("input", () => { try { editing[i].args = JSON.parse(js.value); js.classList.remove("err"); changed(false); } catch { js.classList.add("err"); } });
+    el.querySelectorAll(".b button").forEach(b => b.addEventListener("click", () => {
+      const a = b.dataset.a;
+      if (a === "del") editing.splice(i, 1);
+      if (a === "dup") editing.splice(i + 1, 0, JSON.parse(JSON.stringify(editing[i])));
+      if (a === "up" && i > 0) [editing[i - 1], editing[i]] = [editing[i], editing[i - 1]];
+      if (a === "down" && i < editing.length - 1) [editing[i + 1], editing[i]] = [editing[i], editing[i + 1]];
+      changed(true);
+    }));
+  });
+  if (lastBake && lastBake.failedStep != null) markFailed(lastBake);
+}
+function activeRecipe() { return editing.filter(s => !s.disabled).map(({ op, args }) => ({ op, args })); }
+function markFailed(r) {
+  document.querySelectorAll("#steps .step").forEach(el => { el.classList.remove("bad"); const e = el.querySelector(".steperr"); if (e) e.hidden = true; });
+  if (r.ok || r.failedStep == null) return;
+  // failedStep counts enabled steps only: map it back to the editor row
+  let k = -1, row = -1;
+  editing.forEach((s, i) => { if (!s.disabled && ++k === r.failedStep) row = i; });
+  const el = document.querySelector(`#steps .step[data-i="${row}"]`);
+  if (el) { el.classList.add("bad"); const e = el.querySelector(".steperr"); e.textContent = r.error; e.hidden = false; }
+}
+$("#addStep").addEventListener("click", async () => { await ensureOps(); const inf = await getOpInfo("From Base64"); editing.push({ op: "From Base64", args: inf.args.map(a => a.value) }); changed(true); });
+$("#edRun").addEventListener("click", () => bakeEditor());
+$("#edAuto").addEventListener("change", e => { if (e.target.checked) bakeEditor(); });
+$("#edReset").addEventListener("click", () => { if (!editingOrigin) return; editing = JSON.parse(JSON.stringify(editingOrigin)); editorDirty = false; $("#edState").textContent = ""; renderSteps(); bakeEditor(); });
+$("#edCopy").addEventListener("click", e => copy(prettyRecipe(activeRecipe()), e.target));
+$("#edOpen").addEventListener("click", () => openInCyberChef(activeRecipe()));
+$("#edDl").addEventListener("click", () => { if (lastBake && lastBake.ok) download(lastBake.output.base64, "output." + guessExt(lastBake.output)); });
+$("#edUseOut").addEventListener("click", () => {
+  if (!lastBake || !lastBake.ok) return;
+  inputBytes = fromB64(lastBake.output.base64);
+  $("#input").value = lastBake.output.isText ? new TextDecoder().decode(inputBytes) : "";
+  fromFile = null; updateInInfo(); editorDirty = false; run();
+});
+document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && !$("#editor").hidden && e.target.closest && e.target.closest("#editor")) { e.preventDefault(); bakeEditor(); } });
+let bt; function bakeEditorSoon() { clearTimeout(bt); bt = setTimeout(bakeEditor, 120); }
+async function bakeEditor() {
+  clearTimeout(bt);
+  const seq = ++bakeSeq;
+  $("#editorInfo").innerHTML = '<span class="spinner"></span> baking…';
+  let r;
+  try { r = await (await fetch("/api/bake", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ inputBase64: edIn(), recipe: activeRecipe() }) })).json(); }
+  catch (e) { r = { ok: false, error: e.message }; }
+  if (seq !== bakeSeq) return; // a newer edit is already baking
+  lastBake = r;
+  markFailed(r);
+  if (!r.ok) { $("#editorInfo").innerHTML = `<span style="color:var(--bad)">Error${r.failedStep != null ? " in step " + (r.failedStep + 1) : ""}</span>`; $("#editorOut").textContent = r.error; return; }
+  $("#editorInfo").innerHTML = `<span class="badge ${r.confidence}" title="score ${r.score}/100">${r.confidence} confidence</span> ${esc(r.summary)} <span class="muted">· ${r.output.size.toLocaleString()} bytes</span>`;
+  if (r.output.isText) $("#editorOut").innerHTML = highlight(r.output.base64 ? new TextDecoder().decode(fromB64(r.output.base64).subarray(0, 200000)) : r.output.preview, r.output.findings);
+  else $("#editorOut").textContent = hexdump(r.output.hexPreview);
+  $("#edReadable").hidden = !r.output.readable; if (r.output.readable) $("#edReadableOut").innerHTML = highlight(r.output.readable.slice(0, 20000), r.output.findings);
+  if ($("#edSteps").checked) showStepOutputs();
+  const nf = (r.output.findings || []).length;
+  if (nf) $("#editorInfo").insertAdjacentHTML("beforeend", ` <span class="ioc ${r.output.findings.some(f => f.level === "high") ? "high" : "medium"}" title="${esc(r.output.findings.map(f => f.type + ": " + f.value).join("\n"))}">⚠ ${nf} finding${nf > 1 ? "s" : ""}</span>`);
+}
+</script>
+</body>
+</html>

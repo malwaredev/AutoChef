@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "AutoChef for CyberChef",
+  "version": "0.2.0",
+  "description": "Adds an 'Auto recipe' button to CyberChef. Finds the recipe with your local AutoChef server and applies it in CyberChef.",
+  "permissions": ["storage"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    { "matches": ["https://gchq.github.io/CyberChef/*"], "js": ["bridge.js"], "world": "MAIN", "run_at": "document_idle" },
+    { "matches": ["https://gchq.github.io/CyberChef/*"], "js": ["content.js"], "run_at": "document_idle" }
+  ],
+  "options_page": "options.html",
+  "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" }
+}

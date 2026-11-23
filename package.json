@@ -1,0 +1,54 @@
+{
+  "name": "autochef",
+  "version": "0.2.0",
+  "description": "Automatically finds CyberChef recipes that decode/deobfuscate strings, scripts and files (malware analysis helper).",
+  "type": "module",
+  "main": "src/index.mjs",
+  "bin": {
+    "autochef": "bin/autochef.mjs"
+  },
+  "scripts": {
+    "setup": "npm install --ignore-scripts && node scripts/fix-cyberchef.mjs",
+    "start": "node server.mjs",
+    "test": "node test/make-samples.mjs && node test/run-tests.mjs",
+    "test:corpus": "node test/corpus/run-corpus.mjs 1200",
+    "test:realworld": "node test/realworld/benchmark.mjs",
+    "test:library": "node test/library/verify-library.mjs",
+    "compare-magic": "node test/compare-magic.mjs",
+    "test:crypto": "node test/crypto/run-crypto.mjs",
+    "test:advanced": "node test/advanced/run-advanced.mjs",
+    "test:typical": "node test/typical/run-typical.mjs",
+    "test:ui": "node test/ui/editor.spec.mjs",
+    "test:features": "node test/features/run-features.mjs",
+    "build:ransom": "node scripts/build-ransom-signatures.mjs",
+    "build:web": "node scripts/build-web.mjs",
+    "test:browser": "node test/browser/run-browser.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@noble/ciphers": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
+    "@zip.js/zip.js": "^2.25.0",
+    "cyberchef": "11.6.0",
+    "libphonenumber-js": "^1.13.17",
+    "terser": "^5.51.4"
+  },
+  "devDependencies": {
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "esbuild": "^0.28.2",
+    "events": "^3.3.0",
+    "js-yaml": "^5.5.0",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5"
+  },
+  "overrides": {
+    "ua-parser-js": "1.0.41"
+  }
+}

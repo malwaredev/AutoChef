@@ -1,0 +1,95 @@
+AutoChef
+Copyright 2026 AutoChef contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party material
+--------------------
+CyberChef (https://github.com/gchq/CyberChef)
+  Crown Copyright, licensed under the Apache License, Version 2.0.
+  Installed as an unmodified npm dependency; its two documented post-install fix
+  scripts are executed by scripts/fix-cyberchef.mjs. src/worker.mjs uses CyberChef's
+  core Chef and Magic classes. The recipe-URL helpers in src/recipe.mjs and
+  public/index.html reproduce the format of CyberChef's Utils.generatePrettyRecipe /
+  Utils.encodeURIFragment.
+
+Atomic Red Team (https://github.com/redcanaryco/atomic-red-team)
+  Copyright (c) 2018 Red Canary, Inc. MIT License.
+  test/corpus/art-commands.json contains command lines extracted from its atomics
+  (see test/corpus/extract-art.mjs) and is used only as test plaintext.
+
+CyberChef Recipes (https://github.com/mattnotmax/cyberchef-recipes)
+  Not redistributed. test/realworld/benchmark.mjs and test/library/verify-library.mjs
+  download it at run time. Recipe-library entries in src/library/recipes.json cite the
+  corresponding recipe as their source.
+
+@noble/ciphers (https://github.com/paulmillr/noble-ciphers)
+  Copyright (c) Paul Miller. MIT License. Used to pre-check stream-cipher keys
+  (ChaCha/Salsa20) and, in tests, to encrypt test data independently of CyberChef.
+
+libphonenumber-js (https://gitlab.com/catamphetamine/libphonenumber-js)
+  Copyright (c) Nikolay Kuchumov. MIT License. Installed as an npm dependency to find and
+  validate phone numbers in decoded output (metadata from Google's libphonenumber, Apache-2.0).
+
+ThreatLabz ransomware_notes (https://github.com/ThreatLabz/ransomware_notes)
+  Copyright (c) 2022 Zscaler ThreatLabz. MIT License. src/ransom/signatures.json contains
+  contact points (onion sites, e-mail addresses, Tox IDs) and short lines extracted from these
+  notes by scripts/build-ransom-signatures.mjs.
+
+No More Ransom (https://www.nomoreransom.org)
+  src/ransom/signatures.json lists the names of the decryptors published on its
+  decryption-tools page, with links to that page. No decryptor is redistributed.
+
+@noble/hashes (https://github.com/paulmillr/noble-hashes)
+  Copyright (c) Paul Miller. MIT License. Keccak-256 for Ethereum (EIP-55) and Monero checksums.
+
+@zip.js/zip.js (https://github.com/gildas-lormeau/zip.js)
+  Copyright (c) Gildas Lormeau. BSD-3-Clause License. Reading zips and Office Open XML files.
+
+Browser edition (web/, built by scripts/build-web.mjs with esbuild, MIT)
+  Bundles CyberChef's core and operations (Apache-2.0) and their dependencies, AutoChef, and
+  the Node.js compatibility libraries buffer, crypto-browserify (with browserify-aes,
+  browserify-des, pbkdf2 …), browserify-zlib/pako, path-browserify, stream-browserify, process,
+  events and util (MIT / ISC / Zlib). The licence texts collected from the bundled code are
+  shipped next to the bundles as autochef.js.LEGAL.txt and cc-worker.js.LEGAL.txt.
+
+Components under copyleft or dual licences (all are CyberChef dependencies, installed
+unmodified from npm and bundled unmodified into web/cc-worker.js)
+  openpgp (OpenPGP.js, https://github.com/openpgpjs/openpgpjs) - LGPL-3.0-or-later.
+  es6-polyfills (https://github.com/medikoo/es6-polyfills) - LGPL-3.0-or-later.
+    Their complete source code is in the npm packages, and scripts/build-web.mjs rebuilds the
+    bundle from them, so anyone can replace these libraries with modified versions and rebuild,
+    as the LGPL requires. Neither library is modified by AutoChef.
+  node-forge (https://github.com/digitalbazaar/forge) - "BSD-3-Clause OR GPL-2.0";
+    used under BSD-3-Clause.
+  unorm (https://github.com/walling/unorm) - "MIT or GPL-2.0"; used under MIT.
+  ua-parser-js (https://github.com/faisalman/ua-parser-js) - pinned to version 1.x
+    (package.json "overrides") because it is MIT-licensed; version 2.x is AGPL-3.0 and is not
+    used. It provides CyberChef's "Parse User Agent" operation.
+
+MITRE ATT&CK (https://attack.mitre.org)
+  test/crypto/families.json lists families and the encryption algorithms named for them
+  under technique T1486. © The MITRE Corporation. This work is reproduced and distributed
+  with the permission of The MITRE Corporation.
+
+Published analyses cited for config formats (no code or data copied): Secureworks/Sophos
+and splashdot (REvil config layout), Elastic Security Labs (Remcos SETTINGS layout),
+ESET / eln0ty / Immersive Labs (AsyncRAT/Quasar settings), taogoldi (DcRAT settings).
+
+AutoChef is an independent project and is not affiliated with or endorsed by GCHQ,
+Red Canary or the authors of CyberChef Recipes. "CyberChef" is used only to describe
+compatibility.
+
+MIT License text (Atomic Red Team):
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this
+  software and associated documentation files (the "Software"), to deal in the Software
+  without restriction, including without limitation the rights to use, copy, modify,
+  merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to the following
+  conditions: The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS",
+  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+  NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

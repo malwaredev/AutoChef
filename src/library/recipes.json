@@ -1,0 +1,725 @@
+{
+  "about": "Known obfuscation patterns from published analyses. Each entry links to its public source; recipes were re-implemented and verified by test/library/verify-library.mjs against the real samples that accompany the source. 'detect' patterns are JavaScript regular expressions applied to the input text (Latin-1 view; flags: i).",
+  "entries": [
+    {
+      "id": "ps-deflate-b64",
+      "name": "PowerShell DeflateStream + FromBase64String loader",
+      "family": "Generic PowerShell loader (Invoke-Obfuscation compression, Empire stagers)",
+      "detect": [
+        "DeflateStream",
+        "FromBase64String"
+      ],
+      "recipe": [
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+/=]{30,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "Raw Inflate",
+          "args": [
+            0,
+            0,
+            "Adaptive",
+            false,
+            false
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 1: Extract base64, raw inflate and code beautify",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-1---extract-base64-raw-inflate-and-code-beautify"
+      },
+      "sample": {
+        "recipe": 1
+      }
+    },
+    {
+      "id": "ps-deflate-b64-nested",
+      "name": "Nested PowerShell DeflateStream layers (loop until no more layers)",
+      "family": "PowerShell Empire-style multi-layer stager",
+      "detect": [
+        "DeflateStream",
+        "FromBase64String"
+      ],
+      "recipe": [
+        {
+          "op": "Label",
+          "args": [
+            "layer"
+          ]
+        },
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+/=]{30,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "Raw Inflate",
+          "args": [
+            0,
+            0,
+            "Adaptive",
+            false,
+            false
+          ]
+        },
+        {
+          "op": "Conditional Jump",
+          "args": [
+            "[a-zA-Z0-9+/=]{200,}",
+            false,
+            "layer",
+            50
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 5: Using loops & labels",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-5---using-loops--labels"
+      },
+      "sample": {
+        "recipe": 5
+      }
+    },
+    {
+      "id": "cobalt-strike-ps-stager",
+      "name": "Cobalt Strike PowerShell stager (Base64 shellcode XOR 35)",
+      "family": "Cobalt Strike",
+      "detect": [
+        "-bxor\\s*35\\b",
+        "FromBase64String"
+      ],
+      "recipe": [
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+/=]{100,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "XOR",
+          "args": [
+            {
+              "option": "Decimal",
+              "string": "35"
+            },
+            "Standard",
+            false
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 28: De-obfuscation of Cobalt Strike Beacon using Conditional Jumps to obtain shellcode",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-28---de-obfuscation-of-cobalt-strike-beacon-using-conditional-jumps-to-obtain-shellcode"
+      },
+      "sample": {
+        "recipe": 28
+      }
+    },
+    {
+      "id": "cobalt-strike-ps-charcode-gzip",
+      "name": "Cobalt Strike PowerShell loader: GZip blob in [Byte[]] char-code arrays",
+      "family": "Cobalt Strike",
+      "detect": [
+        "\\[Byte\\[\\]\\]\\s*\\$\\w+\\s*=\\s*\\[Byte\\[\\]\\]\\s*\\(31\\s*,\\s*139"
+      ],
+      "recipe": [
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "\\d{1,3}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Charcode",
+          "args": [
+            "Line feed",
+            10
+          ]
+        },
+        {
+          "op": "Gunzip",
+          "args": []
+        },
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+/=]{30,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "XOR",
+          "args": [
+            {
+              "option": "Decimal",
+              "string": "35"
+            },
+            "Standard",
+            false
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 30: CharCode obfuscated PowerShell loader for a Cobalt Strike beacon",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-30---charcode-obfuscated-powershell-loader-for-a-cobalt-strike-beacon"
+      },
+      "sample": {
+        "recipe": 30
+      }
+    },
+    {
+      "id": "posh-c2-dotnet",
+      "name": "PoshC2 .NET implant: Base64 PowerShell in .NET user strings",
+      "family": "PoshC2",
+      "detect": [
+        "^MZ",
+        "S\\x00y\\x00s\\x00t\\x00e\\x00m\\x00\\.\\x00M\\x00a\\x00n\\x00a\\x00g\\x00e\\x00m\\x00e\\x00n\\x00t\\x00\\.\\x00A\\x00u\\x00t\\x00o\\x00m\\x00a\\x00t\\x00i\\x00o\\x00n"
+      ],
+      "recipe": [
+        {
+          "op": "Strings",
+          "args": [
+            "All",
+            4,
+            "Alphanumeric + punctuation (A)",
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "op": "Remove null bytes",
+          "args": []
+        },
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+=]{200,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "Remove null bytes",
+          "args": []
+        },
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-z0-9/\\\\+=]{100,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "Raw Inflate",
+          "args": [
+            0,
+            0,
+            "Adaptive",
+            false,
+            false
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 14: Decoding POSHC2 executables",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-14---decoding-poshc2-executables"
+      },
+      "sample": {
+        "recipe": 14
+      }
+    },
+    {
+      "id": "php-rot13-gzinflate-b64",
+      "name": "PHP webshell: eval(str_rot13(gzinflate(str_rot13(base64_decode(...)))))",
+      "family": "PHP webshell",
+      "detect": [
+        "str_rot13\\s*\\(\\s*gzinflate\\s*\\(\\s*str_rot13\\s*\\(\\s*base64_decode"
+      ],
+      "recipe": [
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9=/+]{10,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "ROT13",
+          "args": [
+            true,
+            true,
+            false,
+            13
+          ]
+        },
+        {
+          "op": "Raw Inflate",
+          "args": [
+            0,
+            0,
+            "Adaptive",
+            false,
+            false
+          ]
+        },
+        {
+          "op": "ROT13",
+          "args": [
+            true,
+            true,
+            false,
+            13
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 16: Decoding PHP gzinflate and base64 webshells",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-16---decoding-php-gzinflate-and-base64-webshells"
+      },
+      "sample": {
+        "recipe": 16
+      }
+    },
+    {
+      "id": "vbe-script-encoder",
+      "name": "Microsoft Script Encoder (VBE/JSE) block",
+      "family": "VBE/JSE droppers (e.g. inside malicious LNK files)",
+      "detect": [
+        "#@~\\^"
+      ],
+      "recipe": [
+        {
+          "op": "Microsoft Script Decoder",
+          "args": []
+        },
+        {
+          "op": "Subsection",
+          "args": [
+            "(?:[0-9a-fA-F]{2}){20,}",
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "op": "From Hex",
+          "args": [
+            "Auto"
+          ]
+        },
+        {
+          "op": "Merge",
+          "args": [
+            true
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 21: Inline deobfuscation of hex encoded VBE script attached to a malicious LNK file",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-21---inline-deobfuscation-of-hex-encoded-vbe-script-attached-to-a-malicious-lnk-file"
+      },
+      "sample": {
+        "recipe": 21
+      }
+    },
+    {
+      "id": "gootkit-registry",
+      "name": "Gootkit fileless payload stored in registry values (.reg export)",
+      "family": "Gootkit",
+      "detect": [
+        "W\\x00i\\x00n\\x00d\\x00o\\x00w\\x00s\\x00 \\x00R\\x00e\\x00g\\x00i\\x00s\\x00t\\x00r\\x00y"
+      ],
+      "recipe": [
+        {
+          "op": "Decode text",
+          "args": [
+            "UTF-16LE (1200)"
+          ]
+        },
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+/=]{30,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "Decode text",
+          "args": [
+            "UTF-16LE (1200)"
+          ]
+        },
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+/=]{30,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "Raw Inflate",
+          "args": [
+            0,
+            0,
+            "Adaptive",
+            false,
+            false
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 32: Extract malicious Gootkit DLL from obfuscated registry data",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-32---extract-malicious-gootkit-dll-from-obfuscated-registry-data"
+      },
+      "sample": {
+        "recipe": 32
+      }
+    },
+    {
+      "id": "ps-encodedcommand",
+      "name": "PowerShell -EncodedCommand (UTF-16LE Base64), string-concatenation clean-up",
+      "family": "Generic PowerShell launcher (the published example is an Emotet maldoc)",
+      "detect": [
+        "-e[a-z]*\\s+[A-Za-z0-9+/=]{100,}"
+      ],
+      "recipe": [
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+/=]{30,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "Decode text",
+          "args": [
+            "UTF-16LE (1200)"
+          ]
+        },
+        {
+          "op": "Find / Replace",
+          "args": [
+            {
+              "option": "Regex",
+              "string": "'\\)?\\+\\(?'"
+            },
+            "",
+            true,
+            false,
+            true,
+            false
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 33: Identify embedded URLs in Emotet PowerShell script",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-33---identify-embedded-urls-in-emotet-powershell-script"
+      },
+      "sample": {
+        "recipe": 33
+      }
+    },
+    {
+      "id": "cmd-v-powershell-charcodes",
+      "name": "cmd /V delayed-expansion launcher \u2192 PowerShell -e \u2192 char codes",
+      "family": "DOSfuscation / PowerShell char-code downloader",
+      "detect": [
+        "cmd\\s+/V",
+        "-e\\s+[A-Za-z0-9+/=]{40,}"
+      ],
+      "recipe": [
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "[a-zA-Z0-9+/=]{30,}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Base64",
+          "args": [
+            "A-Za-z0-9+/=",
+            true,
+            false
+          ]
+        },
+        {
+          "op": "Decode text",
+          "args": [
+            "UTF-16LE (1200)"
+          ]
+        },
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "\\d{2,3}",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "From Charcode",
+          "args": [
+            "Line feed",
+            10
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 46: Tailoring your regex for the situation",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-46---tailoring-your-regex-for-the-situation"
+      },
+      "sample": {
+        "recipe": 46
+      }
+    },
+    {
+      "id": "java-signed-byte-array",
+      "name": "Java/.NET signed byte array (new byte[]{-12, 34, \u2026})",
+      "family": "Java / Android / .NET droppers",
+      "detect": [
+        "new\\s+byte\\s*\\[\\s*\\]\\s*\\{\\s*-?\\d"
+      ],
+      "recipe": [
+        {
+          "op": "Regular expression",
+          "args": [
+            "User defined",
+            "(?<=\\{)([\\-\\d,\\s]+)(?=\\})",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            "List matches"
+          ]
+        },
+        {
+          "op": "Find / Replace",
+          "args": [
+            {
+              "option": "Regex",
+              "string": "[^\\d-]+"
+            },
+            ",",
+            true,
+            false,
+            true,
+            false
+          ]
+        },
+        {
+          "op": "From Decimal",
+          "args": [
+            "Comma",
+            true
+          ]
+        }
+      ],
+      "source": {
+        "title": "CyberChef Recipes, Recipe 68: Converting Java signed byte arrays",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-68---converting-java-signed-byte-arrays"
+      },
+      "sample": {
+        "recipe": 68
+      }
+    },
+    {
+      "id": "reversed-b64-substituted",
+      "name": "Reversed Base64 with substituted characters",
+      "family": "Commodity loaders (pastebin-hosted payloads)",
+      "detect": [
+        "^\\s*==",
+        "[^A-Za-z0-9+/=\\s]{1}"
+      ],
+      "recipe": null,
+      "note": "Handled generically: AutoChef works out the substitutions for each sample (they change between samples).",
+      "source": {
+        "title": "CyberChef Recipes, Recipe 9: Reverse strings, character substitution, from base64",
+        "url": "https://github.com/mattnotmax/cyberchef-recipes#recipe-9---reverse-strings-character-substitution-from-base64"
+      },
+      "sample": {
+        "recipe": 9
+      }
+    }
+  ]
+}
