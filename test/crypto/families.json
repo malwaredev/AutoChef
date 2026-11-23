@@ -1,0 +1,384 @@
+{
+ "about": "Families and the encryption algorithms MITRE ATT&CK lists for them under T1486 (Data Encrypted for Impact), https://attack.mitre.org/techniques/T1486/ (retrieved 2026-11-21). Algorithms are copied as listed; the test maps each to the primitives CyberChef supports.",
+ "ransomware": [
+  {
+   "name": "Akira",
+   "mitreId": "S1129",
+   "algorithms": [
+    "ChaCha20",
+    "ChaCha8"
+   ],
+   "source": "https://attack.mitre.org/software/S1129/"
+  },
+  {
+   "name": "APT38",
+   "mitreId": "G0082",
+   "algorithms": [
+    "AES256"
+   ],
+   "source": "https://attack.mitre.org/groups/G0082/"
+  },
+  {
+   "name": "Avaddon",
+   "mitreId": "S0640",
+   "algorithms": [
+    "AES256",
+    "RSA"
+   ],
+   "source": "https://attack.mitre.org/software/S0640/"
+  },
+  {
+   "name": "AvosLocker",
+   "mitreId": "S1053",
+   "algorithms": [
+    "AES-256"
+   ],
+   "source": "https://attack.mitre.org/software/S1053/"
+  },
+  {
+   "name": "Babuk",
+   "mitreId": "S0638",
+   "algorithms": [
+    "ChaCha8",
+    "ECDH"
+   ],
+   "source": "https://attack.mitre.org/software/S0638/"
+  },
+  {
+   "name": "Bad Rabbit",
+   "mitreId": "S0606",
+   "algorithms": [
+    "AES-128-CBC",
+    "RSA-2048"
+   ],
+   "source": "https://attack.mitre.org/software/S0606/"
+  },
+  {
+   "name": "BitPaymer",
+   "mitreId": "S0570",
+   "algorithms": [
+    "RSA 1024-bit",
+    "RC4"
+   ],
+   "source": "https://attack.mitre.org/software/S0570/"
+  },
+  {
+   "name": "Black Basta",
+   "mitreId": "S1070",
+   "algorithms": [
+    "ChaCha20"
+   ],
+   "source": "https://attack.mitre.org/software/S1070/"
+  },
+  {
+   "name": "Cheerscrypt",
+   "mitreId": "S1096",
+   "algorithms": [
+    "Sosemanuk",
+    "ECDH"
+   ],
+   "source": "https://attack.mitre.org/software/S1096/"
+  },
+  {
+   "name": "Clop",
+   "mitreId": "S0611",
+   "algorithms": [
+    "AES",
+    "RSA",
+    "RC4"
+   ],
+   "source": "https://attack.mitre.org/software/S0611/"
+  },
+  {
+   "name": "Conti",
+   "mitreId": "S0575",
+   "algorithms": [
+    "AES-256",
+    "RSA-4096"
+   ],
+   "source": "https://attack.mitre.org/software/S0575/"
+  },
+  {
+   "name": "Diavol",
+   "mitreId": "S0659",
+   "algorithms": [
+    "RSA"
+   ],
+   "source": "https://attack.mitre.org/software/S0659/"
+  },
+  {
+   "name": "Egregor",
+   "mitreId": "S0554",
+   "algorithms": [
+    "AES",
+    "RSA"
+   ],
+   "source": "https://attack.mitre.org/software/S0554/"
+  },
+  {
+   "name": "Embargo",
+   "mitreId": "S1247",
+   "algorithms": [
+    "ChaCha20",
+    "Curve25519"
+   ],
+   "source": "https://attack.mitre.org/software/S1247/"
+  },
+  {
+   "name": "FIVEHANDS",
+   "mitreId": "S0618",
+   "algorithms": [
+    "NTRU"
+   ],
+   "source": "https://attack.mitre.org/software/S0618/"
+  },
+  {
+   "name": "HELLOKITTY",
+   "mitreId": "S0617",
+   "algorithms": [
+    "RSA-2048"
+   ],
+   "source": "https://attack.mitre.org/software/S0617/"
+  },
+  {
+   "name": "KillDisk",
+   "mitreId": "S0607",
+   "algorithms": [
+    "AES",
+    "RSA-1028"
+   ],
+   "source": "https://attack.mitre.org/software/S0607/"
+  },
+  {
+   "name": "LockBit 2.0",
+   "mitreId": "S1199",
+   "algorithms": [
+    "AES",
+    "elliptic-curve cryptography"
+   ],
+   "source": "https://attack.mitre.org/software/S1199/"
+  },
+  {
+   "name": "LockBit 3.0",
+   "mitreId": "S1202",
+   "algorithms": [
+    "AES-256",
+    "ChaCha20",
+    "RSA-2048"
+   ],
+   "source": "https://attack.mitre.org/software/S1202/"
+  },
+  {
+   "name": "LockerGoga",
+   "mitreId": "S0372",
+   "algorithms": [
+    "RSA-OAEP MGF1"
+   ],
+   "source": "https://attack.mitre.org/software/S0372/"
+  },
+  {
+   "name": "Maze",
+   "mitreId": "S0449",
+   "algorithms": [
+    "ChaCha",
+    "Salsa20",
+    "RSA"
+   ],
+   "source": "https://attack.mitre.org/software/S0449/"
+  },
+  {
+   "name": "Medusa Group",
+   "mitreId": "G1051",
+   "algorithms": [
+    "AES-256"
+   ],
+   "source": "https://attack.mitre.org/groups/G1051/"
+  },
+  {
+   "name": "Medusa Ransomware",
+   "mitreId": "S1244",
+   "algorithms": [
+    "AES-256"
+   ],
+   "source": "https://attack.mitre.org/software/S1244/"
+  },
+  {
+   "name": "MegaCortex",
+   "mitreId": "S0576",
+   "algorithms": [
+    "AES"
+   ],
+   "source": "https://attack.mitre.org/software/S0576/"
+  },
+  {
+   "name": "NotPetya",
+   "mitreId": "S0368",
+   "algorithms": [
+    "RSA-2048"
+   ],
+   "source": "https://attack.mitre.org/software/S0368/"
+  },
+  {
+   "name": "Pay2Key",
+   "mitreId": "S0556",
+   "algorithms": [
+    "RSA",
+    "AES"
+   ],
+   "source": "https://attack.mitre.org/software/S0556/"
+  },
+  {
+   "name": "Playcrypt",
+   "mitreId": "S1162",
+   "algorithms": [
+    "AES",
+    "RSA"
+   ],
+   "source": "https://attack.mitre.org/software/S1162/"
+  },
+  {
+   "name": "Prestige",
+   "mitreId": "S1058",
+   "algorithms": [
+    "AES"
+   ],
+   "source": "https://attack.mitre.org/software/S1058/"
+  },
+  {
+   "name": "ProLock",
+   "mitreId": "S0654",
+   "algorithms": [
+    "RC6",
+    "RSA-1024"
+   ],
+   "source": "https://attack.mitre.org/software/S0654/"
+  },
+  {
+   "name": "Pysa",
+   "mitreId": "S0583",
+   "algorithms": [
+    "RSA",
+    "AES-CBC"
+   ],
+   "source": "https://attack.mitre.org/software/S0583/"
+  },
+  {
+   "name": "Qilin",
+   "mitreId": "S1242",
+   "algorithms": [
+    "AES-256",
+    "ChaCha20",
+    "RSA-4096",
+    "RSA-2048"
+   ],
+   "source": "https://attack.mitre.org/software/S1242/"
+  },
+  {
+   "name": "RansomHub",
+   "mitreId": "S1212",
+   "algorithms": [
+    "elliptic-curve cryptography"
+   ],
+   "source": "https://attack.mitre.org/software/S1212/"
+  },
+  {
+   "name": "ROADSWEEP",
+   "mitreId": "S1150",
+   "algorithms": [
+    "RC4"
+   ],
+   "source": "https://attack.mitre.org/software/S1150/"
+  },
+  {
+   "name": "RobbinHood",
+   "mitreId": "S0400",
+   "algorithms": [
+    "RSA"
+   ],
+   "source": "https://attack.mitre.org/software/S0400/"
+  },
+  {
+   "name": "Royal",
+   "mitreId": "S1073",
+   "algorithms": [
+    "AES256"
+   ],
+   "source": "https://attack.mitre.org/software/S1073/"
+  },
+  {
+   "name": "Ryuk",
+   "mitreId": "S0446",
+   "algorithms": [
+    "AES",
+    "RSA"
+   ],
+   "source": "https://attack.mitre.org/software/S0446/"
+  },
+  {
+   "name": "SamSam",
+   "mitreId": "S0370",
+   "algorithms": [
+    "RSA-2048"
+   ],
+   "source": "https://attack.mitre.org/software/S0370/"
+  },
+  {
+   "name": "The Gentlemen Ransomware",
+   "mitreId": "S9051",
+   "algorithms": [
+    "Curve25519",
+    "XChaCha20"
+   ],
+   "source": "https://attack.mitre.org/software/S9051/"
+  },
+  {
+   "name": "XCSSET",
+   "mitreId": "S0658",
+   "algorithms": [
+    "AES-CBC"
+   ],
+   "source": "https://attack.mitre.org/software/S0658/"
+  }
+ ],
+ "configFormats": [
+  {
+   "family": "REvil / Sodinokibi",
+   "format": "[32-byte RC4 key][CRC32][length][RC4-encrypted JSON]",
+   "sources": [
+    "https://splashdot.github.io/sodinokibi",
+    "https://www.sophos.com/en-us/research/revil-sodinokibi-ransomware",
+    "https://blogs.blackberry.com/en/2019/07/threat-spotlight-sodinokibi-ransomware"
+   ]
+  },
+  {
+   "family": "Remcos",
+   "format": "SETTINGS resource: [key length 1 byte][RC4 key][RC4-encrypted config, fields separated by 7c 1f 1e 1e 7c]",
+   "sources": [
+    "https://www.elastic.co/security-labs/dissecting-remcos-rat-part-one"
+   ]
+  },
+  {
+   "family": "AsyncRAT / QuasarRAT",
+   "format": "Settings: Base64([HMAC-SHA256 32][IV 16][AES-256-CBC]); key = PBKDF2-SHA1(master key, salt bfeb1e56\u20266c33941, 50000)",
+   "sources": [
+    "https://eln0ty.github.io/malware%20analysis/asyncRAT",
+    "https://www.welivesecurity.com/en/eset-research/unmasking-asyncrat-navigating-labyrinth-forks/",
+    "https://www.immersivelabs.com/blog/apt10-quasar-rat-analysis"
+   ]
+  },
+  {
+   "family": "DcRAT",
+   "format": "As AsyncRAT, salt \"DcRatByqwqdanchun\"",
+   "sources": [
+    "https://taogoldi.github.io/reverse-engineer/blog/dcrat-48kb-config-crack"
+   ]
+  },
+  {
+   "family": "Cobalt Strike (PowerShell stager)",
+   "format": "Base64 shellcode XOR 35 (-bxor 35) in a PowerShell loader",
+   "sources": [
+    "https://github.com/mattnotmax/cyberchef-recipes#recipe-28---de-obfuscation-of-cobalt-strike-beacon-using-conditional-jumps-to-obtain-shellcode"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,461 @@
+{
+  "evaluated": 23,
+  "top1": 16,
+  "top5": 17,
+  "report": [
+    {
+      "recipe": 1,
+      "title": "Extract base64, raw inflate and code beautify",
+      "file": "cc9c6c38840af8573b8175f34e5c54078c1f3fb7c686a6dc49264a0812d56b54_183SnuOIVa.bin",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Regular expression → From Base64 → Raw Inflate",
+      "autochefRecipe": "Regular expression → From Base64 → Raw Inflate",
+      "ms": 636
+    },
+    {
+      "recipe": 2,
+      "title": "Invoke-Obfuscation",
+      "file": "1240695523bbfe3ed450b64b80ed018bd890bfa81259118ca2ac534c2895c835.bin",
+      "status": "fail",
+      "coverageTop1": 0,
+      "coverageTop5": 0,
+      "analystRecipe": "Find / Replace → Reverse",
+      "autochefRecipe": "Drop bytes → Strings → XOR → Find / Replace → XOR → Find / Replace",
+      "ms": 17747
+    },
+    {
+      "recipe": 3,
+      "title": "From CharCode",
+      "file": "3431818-f71f60d10b1cbe034dc1be242c6efa5b9812f3c6/gistfile1.js",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 5,
+      "title": "Using loops & labels",
+      "file": "hmCPDnHs.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Label → Regular expression → From Base64 → Raw Inflate → Jump",
+      "autochefRecipe": "Label → Regular expression → From Base64 → Raw Inflate → Conditional Jump → Find / Replace",
+      "ms": 13804
+    },
+    {
+      "recipe": 7,
+      "title": "COM scriptlet to disassembled x86 assembly",
+      "file": "41a6e22ec6e60af43269f4eb1eb758c91cf746e0772cecd4a69bb5f6faac3578.txt",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 9,
+      "title": "Reverse strings, character substitution, from base64",
+      "file": "RtjrweYF.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Reverse → Find / Replace → Find / Replace → Find / Replace → From Base64",
+      "autochefRecipe": "Reverse → Find / Replace → Find / Replace → Find / Replace → From Base64",
+      "ms": 25015
+    },
+    {
+      "recipe": 10,
+      "title": "Extract object from Squid proxy cache",
+      "file": "00000915",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "To Hex → Regular expression → From Hex → Gunzip",
+      "autochefRecipe": "Drop bytes → Gunzip",
+      "ms": 25268
+    },
+    {
+      "recipe": 14,
+      "title": "Decoding POSHC2 executables",
+      "file": "Posh.exe",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Strings → Remove null bytes → Regular expression → From Base64 → Remove null bytes → Regular expression → From Base64 → Raw Inflate",
+      "autochefRecipe": "Strings → Remove null bytes → Regular expression → From Base64 → Remove null bytes → Regular expression → From Base64 → Raw Inflate",
+      "ms": 1801
+    },
+    {
+      "recipe": 16,
+      "title": "Decoding PHP gzinflate and base64 webshells",
+      "file": "php-webshell.txt",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 17,
+      "title": "Extracting shellcode from a Powershell Meterpreter Reverse TCP script",
+      "file": "9DnD6t6W.txt",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 18,
+      "title": "Recycle Bin Parser with Subsections and Merges",
+      "status": "skip",
+      "why": "parsing task, not decoding"
+    },
+    {
+      "recipe": 19,
+      "title": "Identify Obfuscated Base64 with Regular Expression Highlighting",
+      "file": "TmJsB0Nv.txt",
+      "status": "top5",
+      "coverageTop1": 0.03,
+      "coverageTop5": 0.86,
+      "analystRecipe": "Find / Replace → Regular expression → From Base64 → Regular expression → From Base64 → Find / Replace → Regular expression → From Base64",
+      "autochefRecipe": "Find / Replace → Regular expression → From Base64 → Regular expression → From Base64",
+      "ms": 25039
+    },
+    {
+      "recipe": 20,
+      "title": "Using Yara rules with deobfuscated malicious scripts",
+      "file": "r40SXe7V.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Regular expression → Find / Replace → From Charcode",
+      "autochefRecipe": "Regular expression → Find / Replace → From Decimal",
+      "ms": 44
+    },
+    {
+      "recipe": 21,
+      "title": "Inline deobfuscation of hex encoded VBE script attached to a malicious LNK file",
+      "file": "malicious.lnk.bin",
+      "status": "pass",
+      "coverageTop1": 0.86,
+      "coverageTop5": 0.86,
+      "analystRecipe": "Microsoft Script Decoder → Subsection → Fork → From Hex",
+      "autochefRecipe": "Microsoft Script Decoder → Subsection → From Hex → Merge",
+      "ms": 6669
+    },
+    {
+      "recipe": 23,
+      "title": "Defeating DOSfuscation embedded in a malicious DOC file with Regular Expression capture groups",
+      "file": "Untitled-11232018-659370.doc.bin",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 27,
+      "title": "Decoding an Auto Visitor PHP script",
+      "file": "recipe_27_autovisitor.php.txt",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 28,
+      "title": "De-obfuscation of Cobalt Strike Beacon using Conditional Jumps to obtain shellcode",
+      "file": "recipe_28_beacon1.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Conditional Jump → Label → From Base64 → Decode text → Regular expression → From Base64 → Gunzip → Label → Regular expression → From Base64 → XOR",
+      "autochefRecipe": "Regular expression → From Base64 → XOR",
+      "ms": 181
+    },
+    {
+      "recipe": 30,
+      "title": "CharCode obfuscated PowerShell loader for a Cobalt Strike beacon",
+      "file": "recipe_30.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Regular expression → From Charcode → Gunzip → Regular expression → From Base64 → XOR",
+      "autochefRecipe": "Regular expression → From Charcode → Gunzip → Regular expression → From Base64 → XOR",
+      "ms": 1377
+    },
+    {
+      "recipe": 31,
+      "title": "Deobfuscate encoded strings in .NET binary",
+      "file": "32519b85c0b422e4656de6e6c41878e95fd95026267daab4215ee59c107d6c77.dll",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 32,
+      "title": "Extract malicious Gootkit DLL from obfuscated registry data",
+      "file": "acfbbcbefecadce.reg",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Decode text → Regular expression → From Base64 → Decode text → Regular expression → From Base64 → Raw Inflate",
+      "autochefRecipe": "Decode text → Regular expression → From Base64 → Decode text → Regular expression → From Base64 → Raw Inflate",
+      "ms": 17069
+    },
+    {
+      "recipe": 33,
+      "title": "Identify embedded URLs in Emotet PowerShell script",
+      "file": "embedded_powershell.txt",
+      "status": "pass",
+      "coverageTop1": 0.65,
+      "coverageTop5": 0.65,
+      "analystRecipe": "Regular expression → From Base64 → Decode text → Find / Replace → Register → Find / Replace → Register",
+      "autochefRecipe": "Find / Replace → From Base64 → Decode text → Find / Replace → Find / Replace",
+      "ms": 2775
+    },
+    {
+      "recipe": 34,
+      "title": "Analysing OOXML Files for URLs",
+      "file": "[Content_Types].xml",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 34,
+      "title": "Analysing OOXML Files for URLs",
+      "file": "_rels/.rels",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 34,
+      "title": "Analysing OOXML Files for URLs",
+      "file": "word/_rels/document.xml.rels",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 35,
+      "title": "Decrypting REvil PowerShell ransomware sample",
+      "file": "e1e19d637e6744fedb76a9008952e01ee6dabaecbc6ad2701dfac6aab149cecf.bin.sample",
+      "status": "skip",
+      "why": "analyst recipe fails in current CyberChef (\"Unable to decrypt input with these parameters.\"); AutoChef result: Decoded to a Windows PE executable (MZ) via Regular expression → From Base64 → AES Decrypt → Regular expression → From Hex → Drop bytes"
+    },
+    {
+      "recipe": 37,
+      "title": "From Sandbox zipped email to malicious URL",
+      "file": "FW_FW_ _____ ________23.04.2020.eml",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 38,
+      "title": "Planes, Skulls and Envelopes - Live and Let PowerShell",
+      "file": "powershell_malware.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Find / Replace → Subsection → From Base64 → Decode text → Reverse → Merge → Find / Replace → Regular expression → From Base64",
+      "autochefRecipe": "Find / Replace → Regular expression → From Base64",
+      "ms": 25092
+    },
+    {
+      "recipe": 40,
+      "title": "Morse Code Madness",
+      "file": "recipe_40.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "From Binary → From Morse Code → Reverse → ROT13",
+      "autochefRecipe": "From Binary → From Morse Code → Reverse → ROT13",
+      "ms": 1699
+    },
+    {
+      "recipe": 42,
+      "title": "PHP Webshell with layered obfuscation",
+      "file": "recipe_42.txt",
+      "status": "fail",
+      "coverageTop1": 0.14,
+      "coverageTop5": 0.14,
+      "analystRecipe": "Regular expression → From Base64 → Subsection → From Hex → Merge → Find / Replace → Subsection → From Base64 → Raw Inflate → From HTML Entity → Merge → Subsection → Reverse → From Base64 → Label → Zlib Inflate → Raw Inflate → Jump → ROT13",
+      "autochefRecipe": "Regular expression → From Base64 → Unescape string → Regular expression → From Base64 → Raw Inflate",
+      "ms": 16801
+    },
+    {
+      "recipe": 43,
+      "title": "Magento skimmer deobfuscation",
+      "file": "recipe_43.txt",
+      "status": "pass",
+      "coverageTop1": 0.8,
+      "coverageTop5": 0.8,
+      "analystRecipe": "Subsection → From Hex → Merge → Subsection → Find / Replace → From Hex",
+      "autochefRecipe": "Unescape string",
+      "ms": 289
+    },
+    {
+      "recipe": 44,
+      "title": "Decrypting JobCrypter Ransomware",
+      "file": "457874578874.js",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 45,
+      "title": "Sqiud Proxy Log Timestamp Conversion",
+      "status": "skip",
+      "why": "parsing task, not decoding"
+    },
+    {
+      "recipe": 46,
+      "title": "Tailoring your regex for the situation",
+      "file": "recipe_46.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Regular expression → From Base64 → Decode text → Regular expression → From Charcode → Extract URLs → Regular expression → Split",
+      "autochefRecipe": "Regular expression → From Base64 → Decode text → Regular expression → From Charcode",
+      "ms": 394
+    },
+    {
+      "recipe": 47,
+      "title": "Trickbot Visual Basic script",
+      "file": "recipe_47.txt",
+      "status": "fail",
+      "coverageTop1": 0.01,
+      "coverageTop5": 0.45,
+      "analystRecipe": "Filter → Subsection → From Charcode → Merge → Regular expression → Find / Replace → From Base64",
+      "autochefRecipe": "Regular expression → From Decimal → Regular expression → From Base64",
+      "ms": 6870
+    },
+    {
+      "recipe": 48,
+      "title": "vjw0rm Emoji Madness",
+      "file": "aee629c1ac1aef2e7212e08fa972646a00b3e5889deedaf330873c86befc4919.txt",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 48,
+      "title": "vjw0rm Emoji Madness",
+      "file": "paste_ee.txt",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 49,
+      "title": "Disassemble an EICAR test file",
+      "file": "eicar.txt",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 53,
+      "title": "Olevba output to Powershell",
+      "file": "document.xlsm",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 53,
+      "title": "Olevba output to Powershell",
+      "file": "olevba_out.txt",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 55,
+      "title": "Debofuscating BazarLoader aka TA551 maldoc",
+      "file": "e8960a547ad4f7f14331468f126375e2f100c7bdeb27cedec4bb3b9175e1727d.bin.sample",
+      "status": "fail",
+      "coverageTop1": 0.03,
+      "coverageTop5": 0.03,
+      "analystRecipe": "Find / Replace → Generic Code Beautify → Subsection → From Base64 → Merge → Subsection → Reverse → Merge",
+      "autochefRecipe": "Subsection → From Base64 → Merge → From HTML Entity → Strings",
+      "ms": 25186
+    },
+    {
+      "recipe": 58,
+      "title": "Extract IcedID second stage URL from a maldoc",
+      "file": "[Content_Types].xml",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 58,
+      "title": "Extract IcedID second stage URL from a maldoc",
+      "file": "_rels/.rels",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 58,
+      "title": "Extract IcedID second stage URL from a maldoc",
+      "file": "word/_rels/document.xml.rels",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 59,
+      "title": "Parse Cobalt Strike beacon configuration",
+      "file": "download (1).dat",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 61,
+      "title": "Extract second stage URLs from Qakbot Excel maldocs",
+      "file": "4d3514843f4c4c944b14c27af6518e6223e963f5cbc525730de1a3b38d4f4e61.xlsx",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 62,
+      "title": "Emotet Maldoc to PowerShell",
+      "file": "6abc7527f68ccb40c47d7163829f8f6d6b3111229fe16d061f7473ece7fc8998.docx",
+      "status": "skip",
+      "why": "not a decoding task"
+    },
+    {
+      "recipe": 63,
+      "title": "Extract URLs from Dridex obfuscated VBS",
+      "file": "ae7e543fdbcf720db3e296cdc5f34d294cc71ac4c6db3fb8a30e85aaece3ffd1.xlsm",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 63,
+      "title": "Extract URLs from Dridex obfuscated VBS",
+      "file": "malicious_dropped_vbs.txt",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 65,
+      "title": "Deobfuscate MSF Venom PowerShell reverse shell payload",
+      "file": "recipe_65.txt",
+      "status": "skip",
+      "why": "analyst recipe does not run on this file"
+    },
+    {
+      "recipe": 66,
+      "title": "Nested subsection example",
+      "file": "nested-subsection.txt",
+      "status": "fail",
+      "coverageTop1": 0.4,
+      "coverageTop5": 0.4,
+      "analystRecipe": "Subsection → From Base64 → Subsection → Find / Replace → From Base64 → Merge → From Hex",
+      "autochefRecipe": "Regular expression → From Base64 → Subsection → From Hex → Merge",
+      "ms": 7773
+    },
+    {
+      "recipe": 68,
+      "title": "Converting Java signed byte arrays",
+      "file": "recipe_68.txt",
+      "status": "pass",
+      "coverageTop1": 1,
+      "coverageTop5": 1,
+      "analystRecipe": "Regular expression → Find / Replace → Find / Replace → Fork → Sum → Merge → From Charcode",
+      "autochefRecipe": "Regular expression → Find / Replace → From Decimal",
+      "ms": 538
+    },
+    {
+      "recipe": 69,
+      "title": "Extracting DLL payload from a Bumblebee Powershell script",
+      "file": "0ff8988d76fc6bd764a70a7a4f07a15b2b2c604138d9aadc784c9aeb6b77e275",
+      "status": "fail",
+      "coverageTop1": 0,
+      "coverageTop5": 0,
+      "analystRecipe": "Decode text → Regular expression → Fork → Find / Replace → From Base64 → Gunzip → Merge → Regular expression → From Hex",
+      "autochefRecipe": "XOR → Strings",
+      "ms": 29460
+    }
+  ]
+}

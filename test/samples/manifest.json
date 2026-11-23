@@ -1,0 +1,110 @@
+[
+  {
+    "file": "01-base64.txt",
+    "expect": "quick brown fox",
+    "expectFile": false,
+    "layers": 1
+  },
+  {
+    "file": "02-hex.txt",
+    "expect": "quick brown fox",
+    "expectFile": false,
+    "layers": 1
+  },
+  {
+    "file": "03-base64-gzip.txt",
+    "expect": "DownloadString",
+    "expectFile": false,
+    "layers": 2
+  },
+  {
+    "file": "04-powershell-encodedcommand.txt",
+    "expect": "DownloadString",
+    "expectFile": false,
+    "layers": 3
+  },
+  {
+    "file": "05-powershell-deflatestream.ps1",
+    "expect": "DownloadString",
+    "expectFile": false,
+    "layers": 3
+  },
+  {
+    "file": "06-xor-single-byte-base64.txt",
+    "expect": "quick brown fox",
+    "expectFile": false,
+    "layers": 2
+  },
+  {
+    "file": "07-xor-multibyte-pe-hex.txt",
+    "expect": "PE",
+    "expectFile": true,
+    "layers": 2
+  },
+  {
+    "file": "08-reversed-base64.txt",
+    "expect": "DownloadString",
+    "expectFile": false,
+    "layers": 2
+  },
+  {
+    "file": "09-rot13.txt",
+    "expect": "quick brown fox",
+    "expectFile": false,
+    "layers": 1
+  },
+  {
+    "file": "10-decimal-charcodes.txt",
+    "expect": "DownloadString",
+    "expectFile": false,
+    "layers": 1
+  },
+  {
+    "file": "11-url-encoded-js.txt",
+    "expect": "WScript.Shell",
+    "expectFile": false,
+    "layers": 1
+  },
+  {
+    "file": "12-base32.txt",
+    "expect": "quick brown fox",
+    "expectFile": false,
+    "layers": 1
+  },
+  {
+    "file": "13-layered-b64-hex-rot13.txt",
+    "expect": "quick brown fox",
+    "expectFile": false,
+    "layers": 3
+  },
+  {
+    "file": "14-powershell-char-codes.ps1",
+    "expect": "DownloadString",
+    "expectFile": false,
+    "layers": 2
+  },
+  {
+    "file": "15-five-layers.txt",
+    "expect": "DownloadString",
+    "expectFile": false,
+    "layers": 5
+  },
+  {
+    "file": "16-jwt.txt",
+    "expect": "John Doe",
+    "expectFile": false,
+    "layers": 1
+  },
+  {
+    "file": "17-binary-xor-pe.bin",
+    "expect": "PE",
+    "expectFile": true,
+    "layers": 1
+  },
+  {
+    "file": "18-js-unicode-escapes.js",
+    "expect": "document.location",
+    "expectFile": false,
+    "layers": 1
+  }
+]
